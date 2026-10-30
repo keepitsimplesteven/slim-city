@@ -38,11 +38,21 @@ final class CitySceneController {
         camera.zNear = 0.1
         camera.zFar = span * 10
         cameraNode.camera = camera
-        // Position above and offset on X/Z, then look at the grid center.
+        // Position above and offset equally on X/Y/Z — the equal offsets create
+        // the classic isometric 3/4 view — then AIM at the grid center with a
+        // look-at constraint. (Setting eulerAngles by hand does not guarantee the
+        // camera actually points at the grid, which left the scene off-screen.)
         let distance = Float(span)
         cameraNode.position = SCNVector3(distance, distance, distance)
-        // ~45° yaw, ~35.264° pitch = true isometric. eulerAngles order is ZYX.
-        cameraNode.eulerAngles = SCNVector3(-Float.pi / 5.2, Float.pi / 4, 0)
+
+        // The grid is centered on the world origin (see IsometricGridMapper), so
+        // aim there.
+        let lookAtTarget = SCNNode()
+        lookAtTarget.position = SCNVector3Zero
+        scene.rootNode.addChildNode(lookAtTarget)
+        let lookAt = SCNLookAtConstraint(target: lookAtTarget)
+        lookAt.isGimbalLockEnabled = true
+        cameraNode.constraints = [lookAt]
         cameraNode.name = "isoCamera"
         scene.rootNode.addChildNode(cameraNode)
     }
