@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  SlimCity Watch App Watch App
+//  SlimCity Watch App
 //
 //  Created by Steven Albers on 10/29/26.
 //

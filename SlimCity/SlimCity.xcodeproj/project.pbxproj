@@ -43,9 +43,9 @@
 			path = SlimCity;
 			sourceTree = "<group>";
 		};
-		24BD7D3A3094670000B7986C /* SlimCity Watch App Watch App */ = {
+		24BD7D3A3094670000B7986C /* SlimCity Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "SlimCity Watch App Watch App";
+			path = "SlimCity Watch App";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -68,7 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* SlimCity */,
-				24BD7D3A3094670000B7986C /* SlimCity Watch App Watch App */,
+				24BD7D3A3094670000B7986C /* SlimCity Watch App */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -118,7 +118,7 @@
 			buildRules = (
 			);
 			fileSystemSynchronizedGroups = (
-				24BD7D3A3094670000B7986C /* SlimCity Watch App Watch App */,
+				24BD7D3A3094670000B7986C /* SlimCity Watch App */,
 			);
 			name = "SlimCity Watch App Watch App";
 			productName = "SlimCity Watch App Watch App";
