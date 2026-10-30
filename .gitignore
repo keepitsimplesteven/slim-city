@@ -72,3 +72,9 @@ iOSInjectionProject/
 *~
 .idea/
 .vscode/
+
+## xcodebuild derivedDataPath used for simulator builds
+.build-sim/
+
+## Simulator screenshots captured during verification
+sim-screenshot*.png
