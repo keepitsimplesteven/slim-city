@@ -81,7 +81,7 @@ final class CitySceneController {
             guard let definition = catalog.definition(for: placed.definitionID) else { continue }
             let node = factory.node(for: definition)
             let world = mapper.worldCenter(of: placed.position)
-            node.position = SCNVector3(Float(world.x), node.position.y, Float(world.y))
+            node.position = SCNVector3(Float(world.x), Float(node.position.y), Float(world.y))
             buildingsRoot.addChildNode(node)
         }
     }

@@ -7,8 +7,18 @@ import SlimCityCore
 struct CityScreen: View {
     @State private var viewModel: CityViewModel
 
-    init(viewModel: CityViewModel = CityViewModel()) {
+    @MainActor
+    init(viewModel: CityViewModel) {
         _viewModel = State(initialValue: viewModel)
+    }
+
+    /// Convenience initializer that builds a default view model on the main
+    /// actor. Kept separate from the designated init because a default argument
+    /// value is evaluated in a nonisolated context and therefore cannot call
+    /// `CityViewModel`'s @MainActor initializer.
+    @MainActor
+    init() {
+        _viewModel = State(initialValue: CityViewModel())
     }
 
     var body: some View {

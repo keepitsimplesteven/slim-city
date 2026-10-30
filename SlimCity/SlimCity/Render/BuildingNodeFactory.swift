@@ -69,7 +69,7 @@ public struct BuildingNodeFactory {
 
     /// Stable hue from a model name, so "house"/"farm"/"market" differ.
     static func placeholderColor(for modelName: String) -> PlatformColor {
-        let hash = modelName.unicodeScalars.reduce(UInt32(0)) { ($0 &* 31) &+ $0.value }
+        let hash = modelName.unicodeScalars.reduce(UInt32(0)) { ($0 &* 31) &+ $1.value }
         let hue = CGFloat(hash % 360) / 360.0
         return PlatformColor(hue: hue, saturation: 0.55, brightness: 0.85, alpha: 1)
     }
