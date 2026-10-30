@@ -1,0 +1,28 @@
+#usda 1.0
+(
+    defaultPrim = "House"
+    metersPerUnit = 1
+    upAxis = "Y"
+    doc = "Slim City low-poly house. Authored in USDA and packaged to house.usdz to prove the BuildingNodeFactory USDZ-by-name load path (Task 11). Replaceable by any real art named house.usdz with no code change."
+)
+
+def Xform "House"
+{
+    def Mesh "Walls"
+    {
+        int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+        int[] faceVertexIndices = [0, 1, 2, 3, 4, 5, 6, 7, 0, 4, 7, 1, 1, 7, 6, 2, 2, 6, 5, 3, 3, 5, 4, 0]
+        point3f[] points = [(-0.35, 0, -0.35), (0.35, 0, -0.35), (0.35, 0, 0.35), (-0.35, 0, 0.35), (-0.35, 0.4, -0.35), (0.35, 0.4, 0.35), (0.35, 0.4, -0.35), (-0.35, 0.4, 0.35)]
+        color3f[] primvars:displayColor = [(0.85, 0.72, 0.55)]
+        uniform token subdivisionScheme = "none"
+    }
+
+    def Mesh "Roof"
+    {
+        int[] faceVertexCounts = [3, 3, 3, 3]
+        int[] faceVertexIndices = [0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4]
+        point3f[] points = [(-0.42, 0.4, -0.42), (0.42, 0.4, -0.42), (0.42, 0.4, 0.42), (-0.42, 0.4, 0.42), (0, 0.72, 0)]
+        color3f[] primvars:displayColor = [(0.7, 0.25, 0.2)]
+        uniform token subdivisionScheme = "none"
+    }
+}
