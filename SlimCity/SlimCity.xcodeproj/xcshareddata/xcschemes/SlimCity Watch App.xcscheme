@@ -16,7 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "24BD7D383094670000B7986C"
-               BuildableName = "SlimCity Watch App Watch App.app"
+               BuildableName = "SlimCity Watch App.app"
+               BlueprintName = "SlimCity Watch App"
                ReferencedContainer = "container:SlimCity.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -58,7 +59,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "24BD7D383094670000B7986C"
-            BuildableName = "SlimCity Watch App Watch App.app"
+            BuildableName = "SlimCity Watch App.app"
             ReferencedContainer = "container:SlimCity.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -74,7 +75,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "24BD7D383094670000B7986C"
-            BuildableName = "SlimCity Watch App Watch App.app"
+            BuildableName = "SlimCity Watch App.app"
             ReferencedContainer = "container:SlimCity.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
