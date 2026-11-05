@@ -16,55 +16,57 @@ guardrails on every Crew task step. Check items off here once verified.
 ---
 
 ## Ready to hand off (fair game for Crew)
-- [ ] **Debug mode (in-app debug menu).** A developer-only overlay for testing
-  the economy/claim loop without walking around. All actions go through the
-  frozen public APIs — the debug menu is pure UI + view-model intents, no new
-  game rules, no core/persistence API changes.
+- [x] **Debug mode (in-app debug menu).** DONE on the `debug` branch. A
+  developer-only overlay for testing the economy/claim loop without walking
+  around. All actions go through the frozen public APIs — pure UI + view-model
+  intents, no new game rules, no core/persistence API changes. Everything is
+  `#if DEBUG`, so release builds are untouched.
 
-  **Entry point.** A small button pinned to a screen corner (top-trailing,
-  clear of `WalletHUD`) in `CityScreen`. Tapping it presents a debug panel
-  (sheet or popover). Gate the whole thing behind `#if DEBUG` so it never ships
-  in a release build.
+  **Entry point.** `ladybug.fill` button pinned top-trailing in `CityScreen`
+  (below the `WalletHUD`), presenting a `DebugPanel` sheet. See
+  `SlimCity/SlimCity/CityScreen.swift` (button + sheet) and
+  `SlimCity/SlimCity/Debug/DebugPanel.swift` (panel UI).
 
-  **Actions (starter set):**
-  - [ ] **Add X of Y resource.** Pick a `ResourceType` (material / gold / food)
-    and an amount, then credit the wallet. Use `GameState.credit(_:)` with a
-    `ResourceBundle` holding just that resource; forward the mutation through the
-    view-model so `onStateChanged` persists it (same path `place(...)` uses).
-    New view-model intent, e.g. `debugCredit(_ type:, amount:)`. UI: a resource
-    picker + stepper/text field + "Add" button.
-  - [ ] **Reset all.** Wipe the city back to a fresh start — new `GameState`
-    with the default starting wallet, cleared grid, and a cleared ledger. Needs
-    a view-model `debugReset()` that swaps in a fresh `GameState` AND a
-    persistence path to clear saved state + ledger entries (via the existing
-    `PersistenceController` / store the app already holds — do NOT add new
-    persistence APIs; if a clear isn't expressible with the frozen set, note the
-    gap here instead of widening the API). DESTRUCTIVE: put a confirmation
-    dialog in front of it.
-  - [ ] **Simulate X days.** Credit the wallet as if N days of health activity
-    were claimed, without real HealthKit data. Source metrics two ways, user's
-    choice:
-      - **Previous day's accumulation** — reuse the most recent claimed/known
-        `HealthMetrics` (last ledger entry).
-      - **Rolling 7-day average** — mean of the last week's entries' metrics.
-    For each simulated day, build a `HealthMetrics`, run it through the economy
-    (`BalanceConfig.default.economy.grant(for:)` → `ResourceBundle`) and credit
-    the result ×N, OR push N synthetic `DailyLedgerEntry` rows through the real
-    claim path (`LedgerService.claim` via `DailyClaimCoordinator`) so it
-    exercises dedupe/backfill-cap too. Prefer the claim path — it tests more of
-    the loop. UI: source toggle (prev-day / 7-day avg) + day-count stepper +
-    "Simulate".
+  **Actions (shipped):**
+  - [x] **Add X of Y resource.** Picker + stepper + "Add". Credits the wallet
+    via `CityViewModel.debugCredit(_ type:, amount:)`, which calls
+    `GameState.credit(_:)` and forwards through `onStateChanged` (same persist
+    path `place(...)` uses). Non-positive amounts are a no-op.
+  - [x] **Reset all.** Confirmation dialog → `AppContainer.debugReset()`:
+    `CityViewModel.debugReset()` swaps in a fresh `GameState` (default grid +
+    starting wallet, cleared buildings/selection) and
+    `DebugActions.resetPersistedState()` persists a fresh state and clears the
+    ledger. Also zeroes `claimableDays` / `lastClaim` so the HUD isn't stale.
+  - [x] **Simulate X days.** Source toggle (prev-day / 7-day avg) + day stepper
+    + "Simulate" → `AppContainer.debugSimulate(days:source:)` →
+    `DebugActions.simulateDays(...)`. Takes the CLAIM PATH: writes synthetic
+    unclaimed `DailyLedgerEntry` rows for the most recent days and runs the real
+    `LedgerService.claim`, so dedupe + the backfill cap are exercised.
 
-  **Notes / open questions (resolve during spec):**
-  - Which economy source of truth does the sim use — `EconomyRates.default` or
-    `BalanceConfig.default`? Match whatever the live claim loop uses so debug
-    numbers equal real ones.
-  - "Simulate days" via the ledger path is subject to the `backfillDayLimit`
-    cap; decide whether debug should bypass that or respect it (respecting it is
-    more honest).
-  - Reset should also reset `AppContainer.claimableDays` / `lastClaim` so the
-    HUD doesn't show stale claim state.
-  - Keep every action idempotent-safe to spam; the panel is for rapid testing.
+  **Resolved (were open questions):**
+  - Economy source of truth: **`BalanceConfig.default`** — that's what the live
+    claim loop resolves rates + backfill cap from, so debug grants == real
+    grants.
+  - Backfill cap: **respected** (the "more honest" option). `simulateDays`
+    clamps the filled days to the claim window; a sim can't out-run what the
+    real loop could deliver.
+  - Reset resets `AppContainer.claimableDays` / `lastClaim` — done.
+  - All actions are idempotent-safe to spam (already-claimed days aren't
+    re-granted; non-positive credits no-op).
+
+  **Known gap (frozen-API limit, NOT fixed here):** the `LedgerStore` /
+  `PersistenceController` surface has upsert + load but **no row delete**, so
+  "Reset all" can't physically empty the ledger table — it neutralizes every row
+  (zero metrics, unclaimed) instead. A truly empty table needs a new persistence
+  API; left as-is per the no-API-change rule.
+
+  **Verification:** pure logic (VM debug intents + `DebugActions`) unit-tested
+  in `SlimCityAppLogic` (15 new tests, all green via
+  `SlimCityCore/scripts/test.sh`-style `swift test --disable-sandbox`).
+  `DebugActions.swift` is symlinked into the AppLogic harness like the other
+  app-layer logic. The SwiftUI entry point + panel (`CityScreen`, `DebugPanel`)
+  are Xcode-only and were NOT built headlessly — verify the button/sheet in a
+  simulator.
 
 - [ ] **Pannable / zoomable map.** The isometric SceneKit camera is currently
   fixed (orthographic, look-at the grid center). Add pan to move the view and
