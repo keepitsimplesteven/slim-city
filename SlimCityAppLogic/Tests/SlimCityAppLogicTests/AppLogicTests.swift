@@ -298,3 +298,182 @@ struct LedgerReconcilerTests {
         #expect(toWrite[0].metrics.stepCount == 800)
     }
 }
+
+// MARK: - Stream 4: debug menu intents (DEBUG builds only)
+
+#if DEBUG
+@Suite("CityViewModel debug intents")
+@MainActor
+struct CityViewModelDebugTests {
+    private func vm() -> CityViewModel {
+        CityViewModel(
+            state: GameState(wallet: ResourceBundle(material: 100, gold: 100, food: 100)),
+            catalog: .default
+        )
+    }
+
+    @Test("debugCredit adds a single resource and persists via onStateChanged")
+    func creditSingle() {
+        let model = vm()
+        var saves = 0
+        model.onStateChanged = { _ in saves += 1 }
+        model.debugCredit(.gold, amount: 50)
+        #expect(model.state.wallet[.gold] == 150)
+        #expect(model.state.wallet[.material] == 100) // untouched
+        #expect(saves == 1)
+    }
+
+    @Test("debugCredit ignores non-positive amounts")
+    func creditNonPositive() {
+        let model = vm()
+        var saves = 0
+        model.onStateChanged = { _ in saves += 1 }
+        model.debugCredit(.gold, amount: 0)
+        model.debugCredit(.gold, amount: -5)
+        #expect(model.state.wallet[.gold] == 100)
+        #expect(saves == 0)
+    }
+
+    @Test("debugCredit(bundle:) adds all three resources at once")
+    func creditBundle() {
+        let model = vm()
+        model.debugCredit(ResourceBundle(material: 5, gold: 6, food: 7))
+        #expect(model.state.wallet == ResourceBundle(material: 105, gold: 106, food: 107))
+    }
+
+    @Test("debugReset swaps in a fresh city, keeps grid size, clears selection + buildings")
+    func reset() {
+        let model = vm()
+        model.selectBuilding(id: "house")
+        model.placeSelected(at: GridPosition(column: 0, row: 0))
+        #expect(model.state.buildings.count == 1)
+        let cols = model.state.columns, rows = model.state.rows
+
+        var saves = 0
+        model.onStateChanged = { _ in saves += 1 }
+        model.debugReset()
+        #expect(model.state.buildings.isEmpty)
+        #expect(model.selectedBuildingID == nil)
+        #expect(model.state.wallet == ResourceBundle(material: 100, gold: 100, food: 100))
+        #expect(model.state.columns == cols && model.state.rows == rows)
+        #expect(saves == 1)
+    }
+}
+
+@Suite("DebugActions")
+@MainActor
+struct DebugActionsTests {
+    private func day(_ d: Int) -> DayKey { DayKey(year: 2026, month: 6, day: d) }
+
+    /// A ledger service fixed at 2026-06-10 UTC with a 7-day backfill cap, so
+    /// the claim window is [06-04 ... 06-10].
+    private func fixedNow() -> (now: Date, cal: Calendar) {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "UTC")!
+        let now = cal.date(from: DateComponents(year: 2026, month: 6, day: 10))!
+        return (now, cal)
+    }
+
+    private func entry(_ d: Int, steps: Int, kcal: Double = 0, mins: Double = 0, claimed: Bool = false) -> DailyLedgerEntry {
+        DailyLedgerEntry(day: day(d), metrics: HealthMetrics(stepCount: steps, activeEnergyKilocalories: kcal, exerciseMinutes: mins), isClaimed: claimed)
+    }
+
+    @Test("resetPersistedState saves a fresh state and zeroes every ledger row")
+    func resetClears() throws {
+        let store = MemoryStore(state: GameState(wallet: ResourceBundle(material: 999, gold: 999, food: 999)))
+        try store.upsertLedgerEntry(entry(8, steps: 1000, claimed: true))
+        try store.upsertLedgerEntry(entry(9, steps: 2000))
+        let actions = DebugActions(store: store)
+
+        let fresh = try actions.resetPersistedState()
+        #expect(fresh.wallet == ResourceBundle(material: 100, gold: 100, food: 100))
+        #expect(try store.loadGameState()?.wallet == ResourceBundle(material: 100, gold: 100, food: 100))
+
+        let rows = try store.loadLedgerEntries()
+        // Rows remain (no delete API) but are neutralized.
+        #expect(rows.count == 2)
+        #expect(rows.allSatisfy { $0.metrics == .zero && !$0.isClaimed && !$0.containsUserEnteredData })
+    }
+
+    @Test("simulationMetrics(previousDay) returns the most recent non-zero day")
+    func metricsPrevDay() throws {
+        let store = MemoryStore()
+        try store.upsertLedgerEntry(entry(8, steps: 1000))
+        try store.upsertLedgerEntry(entry(9, steps: 4000))
+        let m = try DebugActions(store: store).simulationMetrics(for: .previousDay)
+        #expect(m?.stepCount == 4000)
+    }
+
+    @Test("simulationMetrics(7-day avg) averages the known history")
+    func metricsAverage() throws {
+        let store = MemoryStore()
+        try store.upsertLedgerEntry(entry(8, steps: 1000, kcal: 100, mins: 10))
+        try store.upsertLedgerEntry(entry(9, steps: 3000, kcal: 200, mins: 30))
+        let m = try DebugActions(store: store).simulationMetrics(for: .rollingSevenDayAverage)
+        #expect(m?.stepCount == 2000)
+        #expect(m?.activeEnergyKilocalories == 150)
+        #expect(m?.exerciseMinutes == 20)
+    }
+
+    @Test("simulationMetrics returns nil when there is no non-zero history")
+    func metricsNoHistory() throws {
+        let store = MemoryStore()
+        #expect(try DebugActions(store: store).simulationMetrics(for: .previousDay) == nil)
+        try store.upsertLedgerEntry(entry(9, steps: 0)) // zero rows don't count
+        #expect(try DebugActions(store: store).simulationMetrics(for: .previousDay) == nil)
+    }
+
+    @Test("simulateDays credits N days of the source metrics through the real claim path")
+    func simulateCredits() throws {
+        let (now, cal) = fixedNow()
+        let store = MemoryStore(state: GameState(wallet: .zero))
+        // One real source day well inside the window.
+        try store.upsertLedgerEntry(entry(6, steps: 1000, kcal: 180, mins: 30, claimed: true))
+        let actions = DebugActions(store: store)
+
+        let grant = try actions.simulateDays(3, source: .previousDay, now: now, calendar: cal)
+        // BalanceConfig.default: 200 steps/material, 18 kcal/gold, 3 min/food.
+        // Per day from (1000,180,30): material 5, gold 10, food 10. ×3 days.
+        #expect(grant == ResourceBundle(material: 15, gold: 30, food: 30))
+        #expect(try store.loadGameState()?.wallet == ResourceBundle(material: 15, gold: 30, food: 30))
+    }
+
+    @Test("simulateDays respects the backfill cap (can't out-run the claim window)")
+    func simulateHonorsCap() throws {
+        let (now, cal) = fixedNow()
+        let store = MemoryStore(state: GameState(wallet: .zero))
+        try store.upsertLedgerEntry(entry(6, steps: 1000, kcal: 180, mins: 30, claimed: true))
+        let actions = DebugActions(store: store)
+
+        // Ask for 30 days; the 7-day window (06-04..06-10) caps the fill at 7
+        // days, but 06-06 is already claimed, so 6 new days are granted.
+        let grant = try actions.simulateDays(30, source: .previousDay, now: now, calendar: cal)
+        // Per day (5,10,10) × 6 days = (30,60,60).
+        #expect(grant == ResourceBundle(material: 30, gold: 60, food: 60))
+    }
+
+    @Test("simulateDays with no source history grants nothing")
+    func simulateNoHistory() throws {
+        let (now, cal) = fixedNow()
+        let store = MemoryStore(state: GameState(wallet: .zero))
+        let grant = try DebugActions(store: store).simulateDays(3, source: .previousDay, now: now, calendar: cal)
+        #expect(grant == .zero)
+        #expect(try store.loadGameState()?.wallet == .zero)
+    }
+
+    @Test("simulateDays is idempotent-safe to spam (already-claimed days aren't re-granted)")
+    func simulateNoDoubleClaim() throws {
+        let (now, cal) = fixedNow()
+        let store = MemoryStore(state: GameState(wallet: .zero))
+        try store.upsertLedgerEntry(entry(6, steps: 1000, kcal: 180, mins: 30, claimed: true))
+        let actions = DebugActions(store: store)
+
+        let first = try actions.simulateDays(3, source: .previousDay, now: now, calendar: cal)
+        let second = try actions.simulateDays(3, source: .previousDay, now: now, calendar: cal)
+        // The window's unclaimed days were filled+claimed on the first call;
+        // the second finds nothing new to claim.
+        #expect(first == ResourceBundle(material: 15, gold: 30, food: 30))
+        #expect(second == .zero)
+    }
+}
+#endif
