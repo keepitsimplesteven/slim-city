@@ -27,11 +27,15 @@ struct DebugPanel: View {
     // Reset
     @State private var showResetConfirm = false
 
+    // Resource mode (mirrors the container; the VM is the source of truth)
+    private var mode: ResourceMode { viewModel.resourceMode }
+
     private var storeAvailable: Bool { container?.debugHasStore ?? false }
 
     var body: some View {
         NavigationStack {
             Form {
+                modeSection
                 addResourceSection
                 simulateSection
                 resetSection
@@ -45,10 +49,40 @@ struct DebugPanel: View {
         }
     }
 
+    // MARK: Resource mode
+
+    private var modeSection: some View {
+        Section {
+            Picker("Mode", selection: Binding(
+                get: { mode },
+                set: { newMode in
+                    if let container { container.debugSetResourceMode(newMode) }
+                    else { viewModel.setResourceMode(newMode) }
+                }
+            )) {
+                Text("HealthKit").tag(ResourceMode.healthKit)
+                Text("Manual").tag(ResourceMode.manual)
+            }
+            .pickerStyle(.segmented)
+            if mode == .healthKit, let container {
+                Button("Sync HealthKit now") {
+                    Task { await container.syncHealthKit() }
+                }
+                Text(container.healthKitStatus)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Resource mode")
+        } footer: {
+            Text("HealthKit: Move ring -> up to 100 gold, Exercise -> up to 30 food, Stand -> up to 12 material per day. Each mode keeps its own wallet. Only the HealthKit wallet is saved; Manual resets when the app restarts.")
+        }
+    }
+
     // MARK: Add X of Y resource
 
     private var addResourceSection: some View {
-        Section("Add resource") {
+        Section {
             Picker("Type", selection: $creditType) {
                 ForEach(ResourceType.allCases, id: \.self) { type in
                     Text(label(for: type)).tag(type)
@@ -57,6 +91,13 @@ struct DebugPanel: View {
             Stepper("Amount: \(creditAmount)", value: $creditAmount, in: 1...10_000, step: 10)
             Button("Add \(creditAmount) \(label(for: creditType))") {
                 viewModel.debugCredit(creditType, amount: creditAmount)
+            }
+            .disabled(mode == .healthKit)
+        } header: {
+            Text("Add resource")
+        } footer: {
+            if mode == .healthKit {
+                Text("Manual mode only. In HealthKit mode, resources come from your activity.")
             }
         }
     }
