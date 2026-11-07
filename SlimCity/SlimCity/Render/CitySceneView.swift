@@ -77,10 +77,31 @@ final class CitySceneController {
         let width = CGFloat(Double(state.columns) * mapper.tileSize)
         let depth = CGFloat(Double(state.rows) * mapper.tileSize)
         let floor = SCNNode(geometry: SCNBox(width: width, height: 0.05, length: depth, chamferRadius: 0))
-        floor.geometry?.firstMaterial?.diffuse.contents = PlatformColor(white: 0.22, alpha: 1)
+        // The floor shows through the gaps between tiles, so it acts as the
+        // grid outline: the tile color tinted slightly toward white.
+        floor.geometry?.firstMaterial?.diffuse.contents = PlatformColor(white: 0.38, alpha: 1)
         floor.position = SCNVector3(0, -0.025, 0)
         floor.name = "ground"
         scene.rootNode.addChildNode(floor)
+
+        // One slightly inset tile per cell in the original ground color.
+        let inset = CGFloat(mapper.tileSize) * 0.94
+        let tileMaterial = SCNMaterial()
+        tileMaterial.diffuse.contents = PlatformColor(white: 0.22, alpha: 1)
+        let tilesRoot = SCNNode()
+        tilesRoot.name = "groundTiles"
+        for column in 0..<state.columns {
+            for row in 0..<state.rows {
+                let center = mapper.worldCenter(of: GridPosition(column: column, row: row))
+                let tile = SCNBox(width: inset, height: 0.01, length: inset, chamferRadius: 0)
+                tile.firstMaterial = tileMaterial
+                let node = SCNNode(geometry: tile)
+                node.name = "ground" // keep tap hit-testing on the ground path
+                node.position = SCNVector3(Float(center.x), 0.005, Float(center.y))
+                tilesRoot.addChildNode(node)
+            }
+        }
+        scene.rootNode.addChildNode(tilesRoot)
     }
 
     /// Clears and rebuilds all building nodes from the current state.
