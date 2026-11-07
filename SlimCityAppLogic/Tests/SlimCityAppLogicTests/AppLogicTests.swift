@@ -477,3 +477,68 @@ struct DebugActionsTests {
     }
 }
 #endif
+
+// MARK: - Stream 5: camera pan/zoom math
+
+@Suite("CameraRig")
+struct CameraRigTests {
+    @Test("starts centered and fully zoomed out")
+    func initial() {
+        let rig = CameraRig(gridSpan: 10)
+        #expect(rig.focus == .zero)
+        #expect(rig.scale == rig.maxScale)
+    }
+
+    @Test("zoom in shrinks scale and clamps at the minimum")
+    func zoomClamps() {
+        var rig = CameraRig(gridSpan: 10)
+        rig.zoom(by: 2)
+        #expect(rig.scale == rig.maxScale / 2)
+        rig.zoom(by: 1000)
+        #expect(rig.scale == rig.minScale)
+    }
+
+    @Test("zoom out never exceeds the fit-the-board scale")
+    func zoomOutClamps() {
+        var rig = CameraRig(gridSpan: 10)
+        rig.zoom(by: 0.1)
+        #expect(rig.scale == rig.maxScale)
+    }
+
+    @Test("dragging right moves the camera left along screen-right")
+    func dragRight() {
+        var rig = CameraRig(gridSpan: 10)
+        rig.pan(dx: 50, dy: 0, viewWidth: 400)
+        // Camera moves opposite the finger: along -screenRight (x down, z up).
+        #expect(rig.focus.x < 0)
+        #expect(rig.focus.y > 0)
+        #expect(abs(rig.focus.x + rig.focus.y) < 1e-9)
+    }
+
+    @Test("dragging down moves the camera toward screen-up")
+    func dragDown() {
+        var rig = CameraRig(gridSpan: 10)
+        rig.pan(dx: 0, dy: 50, viewWidth: 400)
+        // screenUp is (-1,-1): both axes decrease.
+        #expect(rig.focus.x < 0)
+        #expect(rig.focus.y < 0)
+    }
+
+    @Test("pan is clamped to the grid bounds")
+    func panClamps() {
+        var rig = CameraRig(gridSpan: 10)
+        rig.pan(dx: 100_000, dy: 100_000, viewWidth: 400)
+        #expect(abs(rig.focus.x) <= rig.panLimit)
+        #expect(abs(rig.focus.y) <= rig.panLimit)
+    }
+
+    @Test("zoomed in pans slower per point than zoomed out")
+    func panScalesWithZoom() {
+        var far = CameraRig(gridSpan: 10)
+        var near = CameraRig(gridSpan: 10)
+        near.zoom(by: 4)
+        far.pan(dx: 20, dy: 0, viewWidth: 400)
+        near.pan(dx: 20, dy: 0, viewWidth: 400)
+        #expect(simd_length(near.focus) < simd_length(far.focus))
+    }
+}

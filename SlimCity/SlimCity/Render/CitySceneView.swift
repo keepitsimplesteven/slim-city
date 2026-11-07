@@ -16,6 +16,28 @@ final class CitySceneController {
     private let factory: BuildingNodeFactory
     private let buildingsRoot = SCNNode()
     let cameraNode = SCNNode()
+    private let lookAtTarget = SCNNode()
+    private var cameraOffset = SCNVector3Zero
+    private var rig = CameraRig(gridSpan: 10)
+
+    /// Pans the view by a drag delta in points (content follows the finger).
+    func pan(dx: Double, dy: Double, viewWidth: Double) {
+        rig.pan(dx: dx, dy: dy, viewWidth: viewWidth)
+        applyRig()
+    }
+
+    /// Zooms by a pinch factor (>1 zooms in).
+    func zoom(by pinchScale: Double) {
+        rig.zoom(by: pinchScale)
+        applyRig()
+    }
+
+    private func applyRig() {
+        let x = Float(rig.focus.x), z = Float(rig.focus.y)
+        lookAtTarget.position = SCNVector3(x, 0, z)
+        cameraNode.position = SCNVector3(x + cameraOffset.x, cameraOffset.y, z + cameraOffset.z)
+        cameraNode.camera?.orthographicScale = rig.scale
+    }
 
     init(gameState: GameState, factory: BuildingNodeFactory = BuildingNodeFactory(), tileSize: Double = 1.0) {
         self.mapper = IsometricGridMapper(gameState: gameState, tileSize: tileSize)
@@ -32,9 +54,12 @@ final class CitySceneController {
     private func configureCamera(for state: GameState) {
         let camera = SCNCamera()
         camera.usesOrthographicProjection = true
-        // Scale the ortho frame to fit the whole grid with margin.
+        // Horizontal projection: orthographicScale is the half-WIDTH, so the
+        // whole board fits a portrait phone screen (vertical fit cut it off).
         let span = Double(max(state.columns, state.rows)) * mapper.tileSize
-        camera.orthographicScale = span * 0.62
+        camera.projectionDirection = .horizontal
+        rig = CameraRig(gridSpan: span)
+        camera.orthographicScale = rig.scale
         camera.zNear = 0.1
         camera.zFar = span * 10
         cameraNode.camera = camera
@@ -43,11 +68,12 @@ final class CitySceneController {
         // look-at constraint. (Setting eulerAngles by hand does not guarantee the
         // camera actually points at the grid, which left the scene off-screen.)
         let distance = Float(span)
-        cameraNode.position = SCNVector3(distance, distance, distance)
+        cameraOffset = SCNVector3(distance, distance, distance)
+        cameraNode.position = cameraOffset
 
         // The grid is centered on the world origin (see IsometricGridMapper), so
-        // aim there.
-        let lookAtTarget = SCNNode()
+        // aim there. Panning moves this target and the camera together, so the
+        // look-at direction (the isometric angle) never changes.
         lookAtTarget.position = SCNVector3Zero
         scene.rootNode.addChildNode(lookAtTarget)
         let lookAt = SCNLookAtConstraint(target: lookAtTarget)
@@ -77,10 +103,31 @@ final class CitySceneController {
         let width = CGFloat(Double(state.columns) * mapper.tileSize)
         let depth = CGFloat(Double(state.rows) * mapper.tileSize)
         let floor = SCNNode(geometry: SCNBox(width: width, height: 0.05, length: depth, chamferRadius: 0))
-        floor.geometry?.firstMaterial?.diffuse.contents = PlatformColor(white: 0.22, alpha: 1)
+        // The floor shows through the gaps between tiles, so it acts as the
+        // grid outline: the tile color tinted slightly toward white.
+        floor.geometry?.firstMaterial?.diffuse.contents = PlatformColor(white: 0.38, alpha: 1)
         floor.position = SCNVector3(0, -0.025, 0)
         floor.name = "ground"
         scene.rootNode.addChildNode(floor)
+
+        // One slightly inset tile per cell in the original ground color.
+        let inset = CGFloat(mapper.tileSize) * 0.94
+        let tileMaterial = SCNMaterial()
+        tileMaterial.diffuse.contents = PlatformColor(white: 0.22, alpha: 1)
+        let tilesRoot = SCNNode()
+        tilesRoot.name = "groundTiles"
+        for column in 0..<state.columns {
+            for row in 0..<state.rows {
+                let center = mapper.worldCenter(of: GridPosition(column: column, row: row))
+                let tile = SCNBox(width: inset, height: 0.01, length: inset, chamferRadius: 0)
+                tile.firstMaterial = tileMaterial
+                let node = SCNNode(geometry: tile)
+                node.name = "ground" // keep tap hit-testing on the ground path
+                node.position = SCNVector3(Float(center.x), 0.005, Float(center.y))
+                tilesRoot.addChildNode(node)
+            }
+        }
+        scene.rootNode.addChildNode(tilesRoot)
     }
 
     /// Clears and rebuilds all building nodes from the current state.
@@ -124,6 +171,20 @@ struct CitySceneView: UIViewRepresentable {
             action: #selector(Coordinator.handleTap(_:))
         )
         view.addGestureRecognizer(tap)
+
+        // Pan (one finger drag) and pinch-zoom. A tap still places; a drag past
+        // the system threshold becomes a pan instead.
+        let pan = UIPanGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handlePan(_:))
+        )
+        pan.maximumNumberOfTouches = 2
+        let pinch = UIPinchGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handlePinch(_:))
+        )
+        view.addGestureRecognizer(pan)
+        view.addGestureRecognizer(pinch)
         context.coordinator.scnView = view
         return view
     }
@@ -139,6 +200,19 @@ struct CitySceneView: UIViewRepresentable {
         weak var scnView: SCNView?
 
         init(viewModel: CityViewModel) { self.viewModel = viewModel }
+
+        @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
+            guard let scnView, let controller else { return }
+            let t = gesture.translation(in: scnView)
+            gesture.setTranslation(.zero, in: scnView)
+            controller.pan(dx: Double(t.x), dy: Double(t.y), viewWidth: Double(scnView.bounds.width))
+        }
+
+        @objc func handlePinch(_ gesture: UIPinchGestureRecognizer) {
+            guard let controller else { return }
+            controller.zoom(by: Double(gesture.scale))
+            gesture.scale = 1
+        }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let scnView, let controller else { return }
