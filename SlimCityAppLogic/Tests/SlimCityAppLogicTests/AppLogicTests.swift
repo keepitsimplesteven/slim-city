@@ -542,3 +542,150 @@ struct CameraRigTests {
         #expect(simd_length(near.focus) < simd_length(far.focus))
     }
 }
+
+// MARK: - HealthKit vs Manual resource modes
+
+private struct FakeActivityProvider: ActivitySummaryProviding {
+    var summaries: [ActivitySummary]
+    func requestAuthorization() async throws -> Bool { true }
+    func summaries(from start: DayKey, to end: DayKey) async throws -> [ActivitySummary] { summaries }
+}
+
+@Suite("ActivityGrant")
+struct ActivityGrantTests {
+    private let day = DayKey(year: 2026, month: 11, day: 7)
+
+    @Test("move ring maps to gold by percent of goal, capped at 100")
+    func moveToGold() {
+        func gold(_ kcal: Double) -> Int {
+            ActivityGrant.target(for: ActivitySummary(day: day, moveKilocalories: kcal, moveGoalKilocalories: 500))[.gold]
+        }
+        #expect(gold(0) == 0)
+        #expect(gold(250) == 50)
+        #expect(gold(500) == 100)
+        #expect(gold(1500) == 100)
+    }
+
+    @Test("no move goal grants no gold")
+    func noGoal() {
+        let s = ActivitySummary(day: day, moveKilocalories: 400, moveGoalKilocalories: 0)
+        #expect(ActivityGrant.target(for: s)[.gold] == 0)
+    }
+
+    @Test("exercise minutes map to food 1:1, capped at 30")
+    func exerciseToFood() {
+        #expect(ActivityGrant.target(for: ActivitySummary(day: day, exerciseMinutes: 12.9))[.food] == 12)
+        #expect(ActivityGrant.target(for: ActivitySummary(day: day, exerciseMinutes: 90))[.food] == 30)
+    }
+
+    @Test("stand hours map to material 1:1, capped at 12")
+    func standToMaterial() {
+        #expect(ActivityGrant.target(for: ActivitySummary(day: day, standHours: 7))[.material] == 7)
+        #expect(ActivityGrant.target(for: ActivitySummary(day: day, standHours: 20))[.material] == 12)
+    }
+}
+
+@Suite("HealthKitResourceSync")
+struct HealthKitResourceSyncTests {
+    private let today = DayKey(year: 2026, month: 11, day: 7)
+
+    @Test("credits once, then only growth")
+    func incremental() async throws {
+        let records = InMemoryGrantRecordStore()
+        var credited = ResourceBundle.zero
+
+        let first = ActivitySummary(day: today, moveKilocalories: 250, moveGoalKilocalories: 500, exerciseMinutes: 10, standHours: 4)
+        var sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: [first]), records: records)
+        try await sync.sync(today: today) { credited = credited + $0 }
+        #expect(credited == ResourceBundle(material: 4, gold: 50, food: 10))
+
+        // Same data again: nothing new.
+        var again = ResourceBundle.zero
+        try await sync.sync(today: today) { again = again + $0 }
+        #expect(again.isEmpty)
+
+        // The day grows: only the difference is credited.
+        let grown = ActivitySummary(day: today, moveKilocalories: 500, moveGoalKilocalories: 500, exerciseMinutes: 25, standHours: 6)
+        sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: [grown]), records: records)
+        var delta = ResourceBundle.zero
+        try await sync.sync(today: today) { delta = delta + $0 }
+        #expect(delta == ResourceBundle(material: 2, gold: 50, food: 15))
+        #expect(records.granted(on: today) == ResourceBundle(material: 6, gold: 100, food: 25))
+    }
+
+    @Test("clearing records re-credits the day")
+    func clearRecords() async throws {
+        let records = InMemoryGrantRecordStore()
+        let s = ActivitySummary(day: today, exerciseMinutes: 5)
+        let sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: [s]), records: records)
+        try await sync.sync(today: today) { _ in }
+        records.clear()
+        var credited = ResourceBundle.zero
+        try await sync.sync(today: today) { credited = $0 }
+        #expect(credited == ResourceBundle(food: 5))
+    }
+
+    @Test("days outside the window are ignored")
+    func windowBounds() async throws {
+        let old = ActivitySummary(day: DayKey(year: 2026, month: 10, day: 1), exerciseMinutes: 30)
+        let sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: [old]), records: InMemoryGrantRecordStore())
+        var credited = ResourceBundle.zero
+        try await sync.sync(today: today) { credited = $0 }
+        #expect(credited.isEmpty)
+    }
+}
+
+@MainActor
+@Suite("CityViewModel resource modes")
+struct ResourceModeTests {
+    private func makeVM() -> (CityViewModel, () -> [GameState]) {
+        let vm = CityViewModel(state: GameState(wallet: ResourceBundle(material: 10, gold: 20, food: 30)))
+        var saved: [GameState] = []
+        vm.onStateChanged = { saved.append($0) }
+        return (vm, { saved })
+    }
+
+    @Test("wallets are separate and survive switching")
+    func separateWallets() {
+        let (vm, _) = makeVM()
+        vm.setResourceMode(.manual)
+        vm.debugCredit(.gold, amount: 500)
+        #expect(vm.state.wallet[.gold] == 600)   // manual started at 100
+        vm.setResourceMode(.healthKit)
+        #expect(vm.state.wallet == ResourceBundle(material: 10, gold: 20, food: 30))
+        vm.setResourceMode(.manual)
+        #expect(vm.state.wallet[.gold] == 600)
+    }
+
+    @Test("only the HealthKit wallet is ever persisted")
+    func persistsOnlyHealthKit() {
+        let (vm, saved) = makeVM()
+        vm.setResourceMode(.manual)
+        vm.debugCredit(.material, amount: 999)
+        let last = saved().last
+        #expect(last?.wallet == ResourceBundle(material: 10, gold: 20, food: 30))
+    }
+
+    @Test("health credits land in the HealthKit wallet even in manual mode")
+    func creditWhileManual() {
+        let (vm, saved) = makeVM()
+        vm.setResourceMode(.manual)
+        let manualBefore = vm.state.wallet
+        vm.creditHealthKit(ResourceBundle(food: 5))
+        #expect(vm.state.wallet == manualBefore)
+        #expect(saved().last?.wallet[.food] == 35)
+        vm.setResourceMode(.healthKit)
+        #expect(vm.state.wallet[.food] == 35)
+    }
+
+    @Test("placing in manual mode spends the manual wallet only")
+    func placeInManual() {
+        let (vm, saved) = makeVM()
+        vm.setResourceMode(.manual)   // manual wallet = 100/100/100
+        let cost = vm.catalog.definition(for: "house")!.cost
+        let result = vm.place(buildingID: "house", at: GridPosition(column: 0, row: 0))
+        #expect(result.didPlace)
+        #expect(vm.state.wallet == ResourceBundle(material: 100, gold: 100, food: 100) - cost)
+        #expect(saved().last?.wallet == ResourceBundle(material: 10, gold: 20, food: 30))
+    }
+}

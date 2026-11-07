@@ -1,6 +1,14 @@
 import Foundation
 import SlimCityCore
 
+/// Where the live wallet's resources come from. The two modes keep separate
+/// wallets so the user can switch freely; only the HealthKit wallet is ever
+/// persisted.
+public enum ResourceMode: String, CaseIterable, Sendable {
+    case healthKit
+    case manual
+}
+
 /// The single bridge between the UI and the frozen domain core for the city
 /// screen. It holds the current `GameState`, exposes the catalog for the build
 /// menu, tracks the selected building, and translates tap/place intents into
@@ -27,7 +35,16 @@ public final class CityViewModel {
     /// Optional persistence sink. When set, a successful placement saves state.
     /// Left as a closure so the view-model stays free of any SwiftData import
     /// and remains testable without a persistence stack.
+    ///
+    /// Always receives the PERSISTABLE state: the shared city plus the
+    /// HealthKit wallet, whichever mode is active.
     public var onStateChanged: ((GameState) -> Void)?
+
+    /// Which wallet `state` currently shows.
+    public private(set) var resourceMode: ResourceMode = .healthKit
+    /// The wallet of the mode that is NOT active. Never persisted when it is
+    /// the manual one.
+    private var inactiveWallet: ResourceBundle = ResourceBundle(material: 100, gold: 100, food: 100)
 
     public init(
         state: GameState = GameState(wallet: ResourceBundle(material: 100, gold: 100, food: 100)),
@@ -35,6 +52,31 @@ public final class CityViewModel {
     ) {
         self.state = state
         self.catalog = catalog
+    }
+
+    // MARK: Resource modes
+
+    /// The HealthKit wallet, whether or not it is the active one.
+    public var healthKitWallet: ResourceBundle {
+        resourceMode == .healthKit ? state.wallet : inactiveWallet
+    }
+
+    /// The state to save: the shared city with the HealthKit wallet.
+    var persistableState: GameState {
+        guard resourceMode == .manual else { return state }
+        return GameState(columns: state.columns, rows: state.rows, wallet: inactiveWallet, buildings: state.buildings)
+    }
+
+    /// Credits resources earned from health data to the HealthKit wallet, even
+    /// while manual mode is showing, and persists. A zero bundle is a no-op.
+    public func creditHealthKit(_ bundle: ResourceBundle) {
+        guard !bundle.isEmpty else { return }
+        if resourceMode == .healthKit {
+            state.credit(bundle)
+        } else {
+            inactiveWallet = inactiveWallet + bundle
+        }
+        onStateChanged?(persistableState)
     }
 
     // MARK: Derived UI data
@@ -93,7 +135,7 @@ public final class CityViewModel {
             let placed = try state.place(buildingID: buildingID, at: position, using: catalog)
             let feedback = PlacementFeedback.placed(placed)
             lastFeedback = feedback
-            onStateChanged?(state)
+            onStateChanged?(persistableState)
             return feedback
         } catch {
             let feedback = PlacementFeedback.rejected(error)
@@ -123,7 +165,7 @@ public final class CityViewModel {
     public func debugCredit(_ type: ResourceType, amount: Int) {
         guard amount > 0 else { return }
         state.credit(ResourceBundle([type: amount]))
-        onStateChanged?(state)
+        onStateChanged?(persistableState)
     }
 
     /// Credits an arbitrary resource bundle (e.g. the aggregate grant from a
@@ -131,7 +173,20 @@ public final class CityViewModel {
     public func debugCredit(_ bundle: ResourceBundle) {
         guard !bundle.isEmpty else { return }
         state.credit(bundle)
-        onStateChanged?(state)
+        onStateChanged?(persistableState)
+    }
+
+    /// Switches which wallet is live. The departing mode's wallet is kept in
+    /// memory and restored when the user switches back; the city is shared.
+    /// The persisted state is always the HealthKit wallet, so switching never
+    /// writes the manual wallet to disk.
+    public func setResourceMode(_ mode: ResourceMode) {
+        guard mode != resourceMode else { return }
+        let departing = state.wallet
+        state = GameState(columns: state.columns, rows: state.rows, wallet: inactiveWallet, buildings: state.buildings)
+        inactiveWallet = departing
+        resourceMode = mode
+        onStateChanged?(persistableState)
     }
 
     /// Replaces the live city with a fresh one: default grid, a fresh wallet,
@@ -148,9 +203,10 @@ public final class CityViewModel {
         let columns = state.columns
         let rows = state.rows
         state = GameState(columns: columns, rows: rows, wallet: freshWallet)
+        inactiveWallet = freshWallet
         selectedBuildingID = nil
         lastFeedback = nil
-        onStateChanged?(state)
+        onStateChanged?(persistableState)
     }
 
     #endif
