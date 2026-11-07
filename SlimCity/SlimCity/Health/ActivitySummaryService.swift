@@ -31,7 +31,7 @@ public final class ActivitySummaryService: ActivitySummaryProviding, @unchecked 
 
         func components(_ key: DayKey) -> DateComponents {
             var c = DateComponents()
-            c.calendar = calendar
+            c.calendar = self.calendar
             c.year = key.year
             c.month = key.month
             c.day = key.day
@@ -41,7 +41,7 @@ public final class ActivitySummaryService: ActivitySummaryProviding, @unchecked 
             forActivitySummariesBetweenStart: components(start),
             end: components(end)
         )
-        let calendar = self.calendar
+        let cal = self.calendar
 
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKActivitySummaryQuery(predicate: predicate) { _, results, error in
@@ -50,8 +50,8 @@ public final class ActivitySummaryService: ActivitySummaryProviding, @unchecked 
                     return
                 }
                 let mapped = (results ?? []).compactMap { summary -> ActivitySummary? in
-                    var parts = summary.dateComponents(for: calendar)
-                    parts.calendar = calendar
+                    var parts = summary.dateComponents(for: cal)
+                    parts.calendar = cal
                     guard let year = parts.year, let month = parts.month, let day = parts.day else { return nil }
                     return ActivitySummary(
                         day: DayKey(year: year, month: month, day: day),
