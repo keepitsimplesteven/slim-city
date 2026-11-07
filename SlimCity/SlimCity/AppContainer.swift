@@ -78,6 +78,55 @@ final class AppContainer {
             }
         }
     }
+
+    // MARK: - Debug actions (DEBUG builds only)
+    #if DEBUG
+
+    /// Whether the debug menu has a persistence store to act on. When false
+    /// (persistence failed to initialize), Reset/Simulate can't touch disk; the
+    /// view-model-only `debugCredit` still works in memory.
+    var debugHasStore: Bool { store != nil }
+
+    private var debugActions: DebugActions? {
+        store.map { DebugActions(store: $0) }
+    }
+
+    /// Credits a single resource straight into the live wallet (and disk, via
+    /// the VM's persist hook). Pure in-memory mutation through the frozen core.
+    func debugCredit(_ type: ResourceType, amount: Int) {
+        cityViewModel.debugCredit(type, amount: amount)
+    }
+
+    /// Wipes the city back to a fresh start: fresh in-memory `GameState`, fresh
+    /// persisted state, neutralized ledger, and reset claim HUD state. The
+    /// ledger cannot be physically emptied with the frozen persistence API
+    /// (no delete) — `DebugActions.resetPersistedState` zeroes the rows instead.
+    func debugReset() {
+        // Reset persisted state + ledger first (best-effort if a store exists).
+        _ = try? debugActions?.resetPersistedState()
+        // Then swap the live view-model to a fresh city.
+        cityViewModel.debugReset()
+        // Clear stale claim HUD state so it doesn't advertise phantom days.
+        claimableDays = 0
+        lastClaim = nil
+    }
+
+    /// Simulates `days` of activity through the real claim path and refreshes
+    /// the VM wallet from the persisted result. Returns the aggregate grant (or
+    /// nil if there's no store / no source history).
+    @discardableResult
+    func debugSimulate(days: Int, source: DebugActions.MetricsSource) -> ResourceBundle? {
+        guard let debugActions else { return nil }
+        guard let grant = try? debugActions.simulateDays(days, source: source) else { return nil }
+        if let refreshed = try? store?.loadGameState() {
+            cityViewModel.onStateChanged?(refreshed)
+        }
+        // Simulating consumes claimable days; refresh the count honestly.
+        claimableDays = (try? coordinator?.claimableDayCount()) ?? 0
+        return grant
+    }
+
+    #endif
 }
 
 /// Adapts `PersistenceController` (all `@MainActor`) to the plain `LedgerStore`

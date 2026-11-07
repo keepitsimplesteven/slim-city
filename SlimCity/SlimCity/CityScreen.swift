@@ -7,10 +7,24 @@ import SlimCityCore
 struct CityScreen: View {
     @State private var viewModel: CityViewModel
 
+    #if DEBUG
+    /// The app container, used only by the debug menu to reach reset/simulate
+    /// actions that need the persistence store. Optional so previews (and any
+    /// VM-only call site) still work without a full container.
+    private let container: AppContainer?
+    @State private var showDebugPanel = false
+
+    @MainActor
+    init(viewModel: CityViewModel, container: AppContainer? = nil) {
+        _viewModel = State(initialValue: viewModel)
+        self.container = container
+    }
+    #else
     @MainActor
     init(viewModel: CityViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
+    #endif
 
     /// Convenience initializer that builds a default view model on the main
     /// actor. Kept separate from the designated init because a default argument
@@ -19,6 +33,9 @@ struct CityScreen: View {
     @MainActor
     init() {
         _viewModel = State(initialValue: CityViewModel())
+        #if DEBUG
+        self.container = nil
+        #endif
     }
 
     var body: some View {
@@ -44,10 +61,46 @@ struct CityScreen: View {
                 )
             }
             .padding()
+
+            #if DEBUG
+            // Developer-only entry point, pinned top-trailing clear of the HUD.
+            VStack {
+                HStack {
+                    Spacer()
+                    DebugMenuButton { showDebugPanel = true }
+                }
+                Spacer()
+            }
+            .padding(.top, 64)
+            .padding(.trailing, 12)
+            #endif
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.lastFeedback)
+        #if DEBUG
+        .sheet(isPresented: $showDebugPanel) {
+            DebugPanel(viewModel: viewModel, container: container)
+        }
+        #endif
     }
 }
+
+#if DEBUG
+/// The small corner affordance that opens the debug menu. DEBUG builds only.
+struct DebugMenuButton: View {
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "ladybug.fill")
+                .font(.title3)
+                .padding(10)
+                .background(.ultraThinMaterial, in: Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("debug-menu-button")
+        .accessibilityLabel("Debug menu")
+    }
+}
+#endif
 
 /// Top HUD: material / gold / food totals and the current city score.
 struct WalletHUD: View {

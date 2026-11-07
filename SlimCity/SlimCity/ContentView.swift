@@ -6,8 +6,13 @@ struct ContentView: View {
     @State private var container = AppContainer()
 
     var body: some View {
+        #if DEBUG
+        CityScreen(viewModel: container.cityViewModel, container: container)
+            .task { await container.onForeground() }
+        #else
         CityScreen(viewModel: container.cityViewModel)
             .task { await container.onForeground() }
+        #endif
     }
 }
 

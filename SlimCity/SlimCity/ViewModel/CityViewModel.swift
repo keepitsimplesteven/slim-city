@@ -106,6 +106,54 @@ public final class CityViewModel {
     public func clearFeedback() {
         lastFeedback = nil
     }
+
+    // MARK: Debug intents (DEBUG builds only)
+    //
+    // These exist purely to exercise the economy/claim loop from the in-app
+    // debug menu without walking around. They go through the SAME frozen core
+    // APIs the real game uses (`GameState.credit`, `onStateChanged`) and add no
+    // new game rules — so debug numbers equal real ones. All of it is compiled
+    // out of release builds.
+    #if DEBUG
+
+    /// Credits a single resource type by `amount` and persists via the same
+    /// `onStateChanged` path a successful placement uses. A non-positive amount
+    /// is a no-op (safe to spam from a stepper). Mirrors a daily grant of just
+    /// that resource.
+    public func debugCredit(_ type: ResourceType, amount: Int) {
+        guard amount > 0 else { return }
+        state.credit(ResourceBundle([type: amount]))
+        onStateChanged?(state)
+    }
+
+    /// Credits an arbitrary resource bundle (e.g. the aggregate grant from a
+    /// simulated multi-day claim) and persists it. A zero bundle is a no-op.
+    public func debugCredit(_ bundle: ResourceBundle) {
+        guard !bundle.isEmpty else { return }
+        state.credit(bundle)
+        onStateChanged?(state)
+    }
+
+    /// Replaces the live city with a fresh one: default grid, a fresh wallet,
+    /// no buildings. Clears any selection/feedback and forwards the new state so
+    /// the caller can wipe persisted game state too. DESTRUCTIVE — the UI gates
+    /// this behind a confirmation dialog.
+    ///
+    /// Note: clearing the *ledger* is not expressible through the view-model
+    /// (it owns no store); the app layer handles that alongside this call. See
+    /// `AppContainer.debugReset()`.
+    public func debugReset(
+        freshWallet: ResourceBundle = ResourceBundle(material: 100, gold: 100, food: 100)
+    ) {
+        let columns = state.columns
+        let rows = state.rows
+        state = GameState(columns: columns, rows: rows, wallet: freshWallet)
+        selectedBuildingID = nil
+        lastFeedback = nil
+        onStateChanged?(state)
+    }
+
+    #endif
 }
 
 /// The outcome of a placement intent, in UI-ready form.
