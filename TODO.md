@@ -68,7 +68,11 @@ guardrails on every Crew task step. Check items off here once verified.
   are Xcode-only and were NOT built headlessly — verify the button/sheet in a
   simulator.
 
-- [ ] **Pannable / zoomable map.** The isometric SceneKit camera is currently
+- [x] **Pannable / zoomable map.** DONE on the `pan` branch: one-finger drag
+  pans, pinch zooms (clamped; look-at kept, no rotation), and the board now
+  fits a portrait screen at start (horizontal ortho projection). Math lives in
+  `Render/CameraRig.swift` (unit-tested). Device check still owed. Original
+  note: the isometric SceneKit camera is currently
   fixed (orthographic, look-at the grid center). Add pan to move the view and
   pinch/scroll to zoom. Likely a pan + pinch gesture on the `SCNView` in
   `CitySceneView` driving the camera node. Must not fight the tap-to-place
