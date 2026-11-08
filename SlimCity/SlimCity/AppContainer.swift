@@ -35,7 +35,7 @@ final class AppContainer {
         // Load saved state or start with a seeded wallet so a fresh install is
         // playable before any health data is claimed.
         let loaded = (try? controller?.loadGameState()) ?? nil
-        let initialState = loaded ?? GameState(wallet: ResourceBundle(material: 100, gold: 100, food: 100))
+        let initialState = loaded ?? GameState(wallet: ActivityGrant.startingWallet)
         let vm = CityViewModel(state: initialState, catalog: .default)
         self.cityViewModel = vm
 
@@ -173,26 +173,36 @@ final class AppContainer {
         _ = try? debugActions?.resetPersistedState()
         // Then swap the live view-model to a fresh city.
         cityViewModel.debugReset()
-        // Forget per-day grants so the next sync re-credits today's rings.
+        // Forget per-day grants and the baseline, then sync like a fresh
+        // install: past days are skipped, today's rings accumulate on top of
+        // the starting wallet.
         grantRecords.clear()
+        Task { await syncHealthKit() }
         // Clear stale claim HUD state so it doesn't advertise phantom days.
         claimableDays = 0
         lastClaim = nil
     }
 
-    /// Simulates `days` of activity through the real claim path and refreshes
-    /// the VM wallet from the persisted result. Returns the aggregate grant (or
-    /// nil if there's no store / no source history).
+    /// Simulates `days` days of activity as "yesterday's rings × days" and
+    /// credits the live wallet. Returns the grant, or nil if Health data can't
+    /// be read. Yesterday with no ring data earns nothing.
     @discardableResult
-    func debugSimulate(days: Int, source: DebugActions.MetricsSource) -> ResourceBundle? {
-        guard let debugActions else { return nil }
-        guard let grant = try? debugActions.simulateDays(days, source: source) else { return nil }
-        if let refreshed = try? store?.loadGameState() {
-            cityViewModel.onStateChanged?(refreshed)
+    func debugSimulate(days: Int) async -> ResourceBundle? {
+        do {
+            guard try await activityProvider.requestAuthorization() else { return nil }
+            let calendar = Calendar.current
+            guard let date = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: Date())) else {
+                return nil
+            }
+            let yesterday = DayKey(date: date, calendar: calendar)
+            let summary = try await activityProvider.summaries(from: yesterday, to: yesterday)
+                .first { $0.day == yesterday }
+            let grant = ActivityGrant.simulatedGrant(for: summary, days: days)
+            cityViewModel.debugCredit(grant)
+            return grant
+        } catch {
+            return nil
         }
-        // Simulating consumes claimable days; refresh the count honestly.
-        claimableDays = (try? coordinator?.claimableDayCount()) ?? 0
-        return grant
     }
 
     #endif

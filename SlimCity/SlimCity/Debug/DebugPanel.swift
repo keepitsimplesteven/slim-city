@@ -20,7 +20,6 @@ struct DebugPanel: View {
     @State private var creditAmount = 10
 
     // Simulate
-    @State private var simSource: DebugActions.MetricsSource = .previousDay
     @State private var simDays = 1
     @State private var lastSimResult: String?
 
@@ -29,8 +28,6 @@ struct DebugPanel: View {
 
     // Resource mode (mirrors the container; the VM is the source of truth)
     private var mode: ResourceMode { viewModel.resourceMode }
-
-    private var storeAvailable: Bool { container?.debugHasStore ?? false }
 
     var body: some View {
         NavigationStack {
@@ -106,17 +103,14 @@ struct DebugPanel: View {
 
     private var simulateSection: some View {
         Section {
-            Picker("Source", selection: $simSource) {
-                Text("Previous day").tag(DebugActions.MetricsSource.previousDay)
-                Text("7-day average").tag(DebugActions.MetricsSource.rollingSevenDayAverage)
-            }
-            .pickerStyle(.segmented)
             Stepper("Days: \(simDays)", value: $simDays, in: 1...30)
             Button("Simulate \(simDays) day\(simDays == 1 ? "" : "s")") {
-                let grant = container?.debugSimulate(days: simDays, source: simSource)
-                lastSimResult = describe(grant)
+                Task {
+                    let grant = await container?.debugSimulate(days: simDays)
+                    lastSimResult = describe(grant)
+                }
             }
-            .disabled(!storeAvailable)
+            .disabled(container == nil)
             if let lastSimResult {
                 Text(lastSimResult)
                     .font(.footnote)
@@ -125,9 +119,7 @@ struct DebugPanel: View {
         } header: {
             Text("Simulate days")
         } footer: {
-            Text(storeAvailable
-                 ? "Pushes synthetic days through the real claim path (respects the backfill cap). Needs at least one real day of metrics to copy from."
-                 : "Unavailable: no persistence store.")
+            Text("Credits yesterday's ring earnings times the number of days to the live wallet. Yesterday with no ring data earns nothing.")
         }
     }
 
@@ -168,8 +160,8 @@ struct DebugPanel: View {
     }
 
     private func describe(_ grant: ResourceBundle?) -> String {
-        guard let grant else { return "Nothing to simulate (no history or no store)." }
-        if grant.isEmpty { return "No grant (no claimable source days)." }
+        guard let grant else { return "Couldn't read Health data." }
+        if grant.isEmpty { return "Nothing earned: no ring data for yesterday." }
         return "Granted ⛏\(grant[.material]) 💰\(grant[.gold]) 🍃\(grant[.food])."
     }
 }

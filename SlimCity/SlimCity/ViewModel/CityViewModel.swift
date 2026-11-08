@@ -198,12 +198,16 @@ public final class CityViewModel {
     /// (it owns no store); the app layer handles that alongside this call. See
     /// `AppContainer.debugReset()`.
     public func debugReset(
-        freshWallet: ResourceBundle = ResourceBundle(material: 100, gold: 100, food: 100)
+        freshWallet: ResourceBundle = ActivityGrant.startingWallet,
+        manualWallet: ResourceBundle = ResourceBundle(material: 100, gold: 100, food: 100)
     ) {
         let columns = state.columns
         let rows = state.rows
-        state = GameState(columns: columns, rows: rows, wallet: freshWallet)
-        inactiveWallet = freshWallet
+        // The HealthKit wallet restarts at one day's worth of each resource;
+        // the manual sandbox wallet restarts at its own round numbers.
+        let live = resourceMode == .healthKit ? freshWallet : manualWallet
+        state = GameState(columns: columns, rows: rows, wallet: live)
+        inactiveWallet = resourceMode == .healthKit ? manualWallet : freshWallet
         selectedBuildingID = nil
         lastFeedback = nil
         onStateChanged?(persistableState)

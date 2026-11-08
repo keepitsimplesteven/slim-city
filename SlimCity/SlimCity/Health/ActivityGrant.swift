@@ -40,6 +40,26 @@ public enum ActivityGrant {
     public static let maxFoodPerDay = 30
     public static let maxMaterialPerDay = 12
 
+    /// What a brand-new player starts with: one full day's worth of each
+    /// resource. Real activity accumulates on top from there.
+    public static let startingWallet = ResourceBundle(
+        material: maxMaterialPerDay,
+        gold: maxGoldPerDay,
+        food: maxFoodPerDay
+    )
+
+    /// Debug helper: `days` copies of one day's earnings, e.g. "yesterday ×
+    /// days". A missing summary (no ring data) earns nothing.
+    public static func simulatedGrant(for summary: ActivitySummary?, days: Int) -> ResourceBundle {
+        guard let summary, days > 0 else { return .zero }
+        let one = target(for: summary)
+        return ResourceBundle(
+            material: one[.material] * days,
+            gold: one[.gold] * days,
+            food: one[.food] * days
+        )
+    }
+
     /// The total resources a day's activity has earned so far (not a delta).
     public static func target(for summary: ActivitySummary) -> ResourceBundle {
         let movePercent: Double = summary.moveGoalKilocalories > 0
@@ -67,6 +87,10 @@ public protocol ActivitySummaryProviding: Sendable {
 public protocol GrantRecordStore: Sendable {
     func granted(on day: DayKey) -> ResourceBundle
     func setGranted(_ bundle: ResourceBundle, on day: DayKey)
+    /// True once the first sync has recorded the pre-existing past days, so
+    /// they are not paid out. `clear()` resets it.
+    var hasBaseline: Bool { get }
+    func markBaselined()
     func clear()
 }
 
@@ -74,7 +98,16 @@ public protocol GrantRecordStore: Sendable {
 public final class InMemoryGrantRecordStore: GrantRecordStore, @unchecked Sendable {
     private let lock = NSLock()
     private var records: [DayKey: ResourceBundle] = [:]
+    private var baselined = false
     public init() {}
+    public var hasBaseline: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return baselined
+    }
+    public func markBaselined() {
+        lock.lock(); defer { lock.unlock() }
+        baselined = true
+    }
     public func granted(on day: DayKey) -> ResourceBundle {
         lock.lock(); defer { lock.unlock() }
         return records[day] ?? .zero
@@ -86,6 +119,7 @@ public final class InMemoryGrantRecordStore: GrantRecordStore, @unchecked Sendab
     public func clear() {
         lock.lock(); defer { lock.unlock() }
         records = [:]
+        baselined = false
     }
 }
 
@@ -124,9 +158,20 @@ public final class UserDefaultsGrantRecordStore: GrantRecordStore, @unchecked Se
         if let data = try? JSONEncoder().encode(all) { defaults.set(data, forKey: key) }
     }
 
+    public var hasBaseline: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return defaults.bool(forKey: key + ".baselined")
+    }
+
+    public func markBaselined() {
+        lock.lock(); defer { lock.unlock() }
+        defaults.set(true, forKey: key + ".baselined")
+    }
+
     public func clear() {
         lock.lock(); defer { lock.unlock() }
         defaults.removeObject(forKey: key)
+        defaults.removeObject(forKey: key + ".baselined")
     }
 }
 
@@ -163,8 +208,17 @@ public struct HealthKitResourceSync: Sendable {
         var total = ResourceBundle.zero
         var newRecords: [(DayKey, ResourceBundle)] = []
 
+        // First sync ever (or after a reset): earlier days are history, not
+        // earnings. Record them as already granted so only today pays out; the
+        // starting wallet already covers "one day's worth".
+        let firstRun = !records.hasBaseline
+
         for summary in summaries where summary.day >= start && summary.day <= today {
             let target = ActivityGrant.target(for: summary)
+            if firstRun && summary.day < today {
+                records.setGranted(target, on: summary.day)
+                continue
+            }
             let done = records.granted(on: summary.day)
             let delta = ResourceBundle(
                 material: max(0, target[.material] - done[.material]),
@@ -176,6 +230,7 @@ public struct HealthKitResourceSync: Sendable {
             newRecords.append((summary.day, done + delta))
         }
 
+        if firstRun { records.markBaselined() }
         guard !total.isEmpty else { return .zero }
         credit(total)
         for (day, bundle) in newRecords { records.setGranted(bundle, on: day) }
