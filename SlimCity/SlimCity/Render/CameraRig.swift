@@ -1,8 +1,8 @@
 import Foundation
 import simd
 
-/// Pure pan/zoom math for the isometric camera, kept free of SceneKit so it can
-/// be unit-tested headlessly.
+/// Pure pan/zoom/tap math for the isometric camera, kept free of the renderer so
+/// it can be unit-tested headlessly.
 ///
 /// The camera looks at `focus` (a point on the X/Z ground plane) from a fixed
 /// (+1, +1, +1) direction, so the isometric look never changes: panning moves
@@ -50,6 +50,20 @@ struct CameraRig: Equatable {
         focus += delta
         focus.x = min(max(focus.x, -panLimit), panLimit)
         focus.y = min(max(focus.y, -panLimit), panLimit)
+    }
+
+    /// The ground-plane (x, z) point under a screen point, for taps.
+    ///
+    /// Pure inverse of the camera: the view spans `2 * scale` world units across
+    /// its width (square pixels), so a pixel offset from the view center maps to
+    /// a screen-plane offset, then onto the ground with the same axes `pan` uses.
+    /// Replaces a renderer hit test, so it needs no scene and is testable headless.
+    func groundPoint(screenX: Double, screenY: Double, viewWidth: Double, viewHeight: Double) -> SIMD2<Double> {
+        guard viewWidth > 0, viewHeight > 0 else { return focus }
+        let unitsPerPoint = (2 * scale) / viewWidth
+        let right = (screenX - viewWidth / 2) * unitsPerPoint
+        let up = (viewHeight / 2 - screenY) * unitsPerPoint
+        return focus + right * Self.screenRight + (up * Self.verticalFactor) * Self.screenUp
     }
 
     /// Zooms by a pinch factor (>1 zooms in), clamped to the allowed range.
