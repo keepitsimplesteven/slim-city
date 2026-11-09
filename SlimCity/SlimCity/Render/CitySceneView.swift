@@ -1,24 +1,29 @@
 import SwiftUI
-import SceneKit
+import RealityKit
 import simd
 import SlimCityCore
 
-/// Builds and owns the SceneKit scene for the isometric city: an orthographic
-/// camera at a fixed ~45° angle, basic lighting, a ground grid, and one node per
-/// placed building (positioned via `IsometricGridMapper`).
+/// Builds and owns the RealityKit scene for the isometric city: an orthographic
+/// camera at a fixed ~45° angle, basic lighting, a ground grid, and one entity
+/// per placed building (positioned via `IsometricGridMapper`).
 ///
 /// Rendering only — it reads a `GameState` and draws it. All rules stay in the
 /// domain core; placement comes back through `CityViewModel`.
 @MainActor
 final class CitySceneController {
-    let scene = SCNScene()
+    /// Everything the scene draws hangs off this entity.
+    let root = Entity()
     let mapper: IsometricGridMapper
-    private let factory: BuildingNodeFactory
-    private let buildingsRoot = SCNNode()
-    let cameraNode = SCNNode()
-    private let lookAtTarget = SCNNode()
-    private var cameraOffset = SCNVector3Zero
+    private let factory: BuildingEntityFactory
+    private let buildingsRoot = Entity()
+    private let cameraEntity = Entity()
+    private var cameraOffset = SIMD3<Float>.zero
     private var rig = CameraRig(gridSpan: 10)
+    private let span: Double
+
+    /// RealityKit's `OrthographicCameraComponent.scale` per unit of `CameraRig.scale`
+    /// (the rig's value is the half-width of the view in world units).
+    private static let cameraScaleFactor: Float = 1
 
     /// Pans the view by a drag delta in points (content follows the finger).
     func pan(dx: Double, dy: Double, viewWidth: Double) {
@@ -32,202 +37,173 @@ final class CitySceneController {
         applyRig()
     }
 
-    private func applyRig() {
-        let x = Float(rig.focus.x), z = Float(rig.focus.y)
-        lookAtTarget.position = SCNVector3(x, 0, z)
-        cameraNode.position = SCNVector3(x + cameraOffset.x, cameraOffset.y, z + cameraOffset.z)
-        cameraNode.camera?.orthographicScale = rig.scale
+    /// The grid cell under a screen point, if it lands on the grid. The tap is
+    /// turned into a ground point by the camera math, not by a renderer hit test.
+    func gridPosition(atScreen point: CGPoint, viewSize: CGSize) -> GridPosition? {
+        let ground = rig.groundPoint(
+            screenX: Double(point.x), screenY: Double(point.y),
+            viewWidth: Double(viewSize.width), viewHeight: Double(viewSize.height)
+        )
+        return mapper.gridPosition(atWorld: ground)
     }
 
-    init(gameState: GameState, factory: BuildingNodeFactory = BuildingNodeFactory(), tileSize: Double = 1.0) {
+    /// Aims the camera at the focus from the fixed isometric offset, and sets zoom.
+    private func applyRig() {
+        let focus = SIMD3<Float>(Float(rig.focus.x), 0, Float(rig.focus.y))
+        cameraEntity.look(at: focus, from: focus + cameraOffset, relativeTo: nil)
+        cameraEntity.components[OrthographicCameraComponent.self]?.scale =
+            Float(rig.scale) * Self.cameraScaleFactor
+    }
+
+    // The factory defaults to nil, not `BuildingEntityFactory()`: default-argument
+    // values run in a nonisolated context, and the factory is main-actor.
+    init(gameState: GameState, factory: BuildingEntityFactory? = nil, tileSize: Double = 1.0) {
         self.mapper = IsometricGridMapper(gameState: gameState, tileSize: tileSize)
-        self.factory = factory
+        self.factory = factory ?? BuildingEntityFactory()
+        self.span = Double(max(gameState.columns, gameState.rows)) * tileSize
         buildingsRoot.name = "buildingsRoot"
-        scene.rootNode.addChildNode(buildingsRoot)
-        configureCamera(for: gameState)
+        root.addChild(buildingsRoot)
+        configureCamera()
         configureLighting()
         addGroundGrid(for: gameState)
         rebuild(from: gameState)
     }
 
-    /// Orthographic camera tilted to the classic isometric 3/4 view.
-    private func configureCamera(for state: GameState) {
-        let camera = SCNCamera()
-        camera.usesOrthographicProjection = true
-        // Horizontal projection: orthographicScale is the half-WIDTH, so the
-        // whole board fits a portrait phone screen (vertical fit cut it off).
-        let span = Double(max(state.columns, state.rows)) * mapper.tileSize
-        camera.projectionDirection = .horizontal
-        rig = CameraRig(gridSpan: span)
-        camera.orthographicScale = rig.scale
-        camera.zNear = 0.1
-        camera.zFar = span * 10
-        cameraNode.camera = camera
-        // Position above and offset equally on X/Y/Z — the equal offsets create
-        // the classic isometric 3/4 view — then AIM at the grid center with a
-        // look-at constraint. (Setting eulerAngles by hand does not guarantee the
-        // camera actually points at the grid, which left the scene off-screen.)
-        let distance = Float(span)
-        cameraOffset = SCNVector3(distance, distance, distance)
-        cameraNode.position = cameraOffset
+    /// Loads building models. Call once, before the first `rebuild`, so the
+    /// USDZ houses show instead of the placeholder boxes.
+    func preload() async {
+        await factory.preload(modelNames: BuildingCatalog.default.definitions.map(\.modelName))
+    }
 
-        // The grid is centered on the world origin (see IsometricGridMapper), so
-        // aim there. Panning moves this target and the camera together, so the
-        // look-at direction (the isometric angle) never changes.
-        lookAtTarget.position = SCNVector3Zero
-        scene.rootNode.addChildNode(lookAtTarget)
-        let lookAt = SCNLookAtConstraint(target: lookAtTarget)
-        lookAt.isGimbalLockEnabled = true
-        cameraNode.constraints = [lookAt]
-        cameraNode.name = "isoCamera"
-        scene.rootNode.addChildNode(cameraNode)
+    /// Orthographic camera tilted to the classic isometric 3/4 view.
+    private func configureCamera() {
+        // Horizontal projection: the scale is the half-WIDTH, so the whole board
+        // fits a portrait phone screen (vertical fit cut it off).
+        rig = CameraRig(gridSpan: span)
+        var camera = OrthographicCameraComponent()
+        camera.scaleDirection = .horizontal
+        camera.near = 0.1
+        camera.far = Float(span * 10)
+        cameraEntity.components.set(camera)
+        // Offset equally on X/Y/Z — the equal offsets create the classic
+        // isometric 3/4 view — then AIM at the focus with a look-at. Panning moves
+        // the focus and camera together, so the angle never changes.
+        let distance = Float(span)
+        cameraOffset = SIMD3(distance, distance, distance)
+        cameraEntity.name = "isoCamera"
+        root.addChild(cameraEntity)
+        applyRig()
     }
 
     private func configureLighting() {
-        let ambient = SCNNode()
-        ambient.light = SCNLight()
-        ambient.light?.type = .ambient
-        ambient.light?.intensity = 350
-        scene.rootNode.addChildNode(ambient)
-
-        let sun = SCNNode()
-        sun.light = SCNLight()
-        sun.light?.type = .directional
-        sun.light?.intensity = 800
-        sun.eulerAngles = SCNVector3(-Float.pi / 3, Float.pi / 5, 0)
-        scene.rootNode.addChildNode(sun)
+        // RealityKit's virtual camera supplies soft ambient light of its own;
+        // this adds the sun, matching the old SceneKit direction.
+        let sun = DirectionalLight()
+        sun.light.intensity = 2500
+        sun.orientation = simd_quatf(angle: Float.pi / 5, axis: [0, 1, 0])
+            * simd_quatf(angle: -Float.pi / 3, axis: [1, 0, 0])
+        root.addChild(sun)
     }
 
     /// A thin floor plus grid lines so empty tiles are visible.
     private func addGroundGrid(for state: GameState) {
-        let width = CGFloat(Double(state.columns) * mapper.tileSize)
-        let depth = CGFloat(Double(state.rows) * mapper.tileSize)
-        let floor = SCNNode(geometry: SCNBox(width: width, height: 0.05, length: depth, chamferRadius: 0))
+        let width = Float(Double(state.columns) * mapper.tileSize)
+        let depth = Float(Double(state.rows) * mapper.tileSize)
         // The floor shows through the gaps between tiles, so it acts as the
         // grid outline: the tile color tinted slightly toward white.
-        floor.geometry?.firstMaterial?.diffuse.contents = PlatformColor(white: 0.38, alpha: 1)
-        floor.position = SCNVector3(0, -0.025, 0)
+        let floorMaterial = SimpleMaterial(color: PlatformColor(white: 0.38, alpha: 1), roughness: 1, isMetallic: false)
+        let floor = ModelEntity(
+            mesh: .generateBox(width: width, height: 0.05, depth: depth),
+            materials: [floorMaterial]
+        )
+        floor.position = SIMD3(0, -0.025, 0)
         floor.name = "ground"
-        scene.rootNode.addChildNode(floor)
+        root.addChild(floor)
 
         // One slightly inset tile per cell in the original ground color.
-        let inset = CGFloat(mapper.tileSize) * 0.94
-        let tileMaterial = SCNMaterial()
-        tileMaterial.diffuse.contents = PlatformColor(white: 0.22, alpha: 1)
-        let tilesRoot = SCNNode()
+        let inset = Float(mapper.tileSize) * 0.94
+        let tileMaterial = SimpleMaterial(color: PlatformColor(white: 0.22, alpha: 1), roughness: 1, isMetallic: false)
+        let tileMesh = MeshResource.generateBox(width: inset, height: 0.01, depth: inset)
+        let tilesRoot = Entity()
         tilesRoot.name = "groundTiles"
         for column in 0..<state.columns {
             for row in 0..<state.rows {
                 let center = mapper.worldCenter(of: GridPosition(column: column, row: row))
-                let tile = SCNBox(width: inset, height: 0.01, length: inset, chamferRadius: 0)
-                tile.firstMaterial = tileMaterial
-                let node = SCNNode(geometry: tile)
-                node.name = "ground" // keep tap hit-testing on the ground path
-                node.position = SCNVector3(Float(center.x), 0.005, Float(center.y))
-                tilesRoot.addChildNode(node)
+                let tile = ModelEntity(mesh: tileMesh, materials: [tileMaterial])
+                tile.name = "ground"
+                tile.position = SIMD3(Float(center.x), 0.005, Float(center.y))
+                tilesRoot.addChild(tile)
             }
         }
-        scene.rootNode.addChildNode(tilesRoot)
+        root.addChild(tilesRoot)
     }
 
-    /// Clears and rebuilds all building nodes from the current state.
+    /// Clears and rebuilds all building entities from the current state.
     func rebuild(from state: GameState) {
-        buildingsRoot.childNodes.forEach { $0.removeFromParentNode() }
+        buildingsRoot.children.removeAll()
         let catalog = BuildingCatalog.default
         for placed in state.buildings {
             guard let definition = catalog.definition(for: placed.definitionID) else { continue }
-            let node = factory.node(for: definition)
+            let entity = factory.entity(for: definition)
             let world = mapper.worldCenter(of: placed.position)
-            node.position = SCNVector3(Float(world.x), Float(node.position.y), Float(world.y))
-            buildingsRoot.addChildNode(node)
+            entity.position = SIMD3(Float(world.x), entity.position.y, Float(world.y))
+            buildingsRoot.addChild(entity)
         }
-    }
-
-    /// Converts a hit-test world point to a grid cell, if it lands on the grid.
-    func gridPosition(atWorldX x: Float, z: Float) -> GridPosition? {
-        mapper.gridPosition(atWorld: SIMD2(Double(x), Double(z)))
     }
 }
 
 #if canImport(UIKit)
-import UIKit
-
-/// Embeds the city `SCNView` in SwiftUI and routes taps to the view-model.
-struct CitySceneView: UIViewRepresentable {
+/// Embeds the city `RealityView` in SwiftUI and routes taps to the view-model.
+struct CitySceneView: View {
     let viewModel: CityViewModel
 
-    func makeCoordinator() -> Coordinator { Coordinator(viewModel: viewModel) }
+    @State private var controller: CitySceneController?
+    @State private var lastDrag = CGSize.zero
+    @State private var lastMagnification = 1.0
 
-    func makeUIView(context: Context) -> SCNView {
-        let view = SCNView()
-        let controller = CitySceneController(gameState: viewModel.state)
-        context.coordinator.controller = controller
-        view.scene = controller.scene
-        view.pointOfView = controller.cameraNode
-        view.backgroundColor = .clear
-        view.antialiasingMode = .multisampling4X
-        let tap = UITapGestureRecognizer(
-            target: context.coordinator,
-            action: #selector(Coordinator.handleTap(_:))
-        )
-        view.addGestureRecognizer(tap)
-
-        // Pan (one finger drag) and pinch-zoom. A tap still places; a drag past
-        // the system threshold becomes a pan instead.
-        let pan = UIPanGestureRecognizer(
-            target: context.coordinator,
-            action: #selector(Coordinator.handlePan(_:))
-        )
-        pan.maximumNumberOfTouches = 2
-        let pinch = UIPinchGestureRecognizer(
-            target: context.coordinator,
-            action: #selector(Coordinator.handlePinch(_:))
-        )
-        view.addGestureRecognizer(pan)
-        view.addGestureRecognizer(pinch)
-        context.coordinator.scnView = view
-        return view
-    }
-
-    func updateUIView(_ uiView: SCNView, context: Context) {
-        context.coordinator.controller?.rebuild(from: viewModel.state)
-    }
-
-    @MainActor
-    final class Coordinator: NSObject {
-        let viewModel: CityViewModel
-        var controller: CitySceneController?
-        weak var scnView: SCNView?
-
-        init(viewModel: CityViewModel) { self.viewModel = viewModel }
-
-        @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
-            guard let scnView, let controller else { return }
-            let t = gesture.translation(in: scnView)
-            gesture.setTranslation(.zero, in: scnView)
-            controller.pan(dx: Double(t.x), dy: Double(t.y), viewWidth: Double(scnView.bounds.width))
-        }
-
-        @objc func handlePinch(_ gesture: UIPinchGestureRecognizer) {
-            guard let controller else { return }
-            controller.zoom(by: Double(gesture.scale))
-            gesture.scale = 1
-        }
-
-        @objc func handleTap(_ gesture: UITapGestureRecognizer) {
-            guard let scnView, let controller else { return }
-            let point = gesture.location(in: scnView)
-            let hits = scnView.hitTest(point, options: [
-                SCNHitTestOption.searchMode: SCNHitTestSearchMode.closest.rawValue
-            ])
-            // Prefer the ground hit so we read a grid cell even when tapping near
-            // an existing building's base.
-            guard let hit = hits.first(where: { $0.node.name == "ground" }) ?? hits.first else { return }
-            let world = hit.worldCoordinates
-            if let cell = controller.gridPosition(atWorldX: world.x, z: world.z) {
-                viewModel.placeSelected(at: cell)
+    var body: some View {
+        // Read the state here so SwiftUI re-runs `update` when it changes.
+        let state = viewModel.state
+        GeometryReader { geometry in
+            RealityView { content in
+                let controller = CitySceneController(gameState: viewModel.state)
+                await controller.preload()
                 controller.rebuild(from: viewModel.state)
+                content.camera = .virtual
+                content.add(controller.root)
+                self.controller = controller
+            } update: { _ in
+                controller?.rebuild(from: state)
             }
+            .realityViewCameraControls(.none)
+            .gesture(
+                SpatialTapGesture().onEnded { tap in
+                    guard let controller,
+                          let cell = controller.gridPosition(atScreen: tap.location, viewSize: geometry.size)
+                    else { return }
+                    viewModel.placeSelected(at: cell)
+                }
+            )
+            // Pan (one finger drag) and pinch-zoom. A tap still places; a drag
+            // past the minimum distance becomes a pan instead.
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 8).onChanged { drag in
+                    let step = CGSize(
+                        width: drag.translation.width - lastDrag.width,
+                        height: drag.translation.height - lastDrag.height
+                    )
+                    lastDrag = drag.translation
+                    controller?.pan(dx: step.width, dy: step.height, viewWidth: geometry.size.width)
+                }
+                .onEnded { _ in lastDrag = .zero }
+            )
+            .simultaneousGesture(
+                MagnifyGesture().onChanged { pinch in
+                    controller?.zoom(by: pinch.magnification / lastMagnification)
+                    lastMagnification = pinch.magnification
+                }
+                .onEnded { _ in lastMagnification = 1 }
+            )
         }
     }
 }
