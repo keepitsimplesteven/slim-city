@@ -50,3 +50,14 @@ previously tripped over them. Follow them unless a task explicitly overrides.
 - Small, reviewable commits per logical change.
 - Don't commit directly to `main`; use a feature branch.
 - Match existing code style; prefer the patterns already in the file you edit.
+
+## Device deploy (after every feature or bug fix)
+- After finishing a feature or bug fix, and after its commits are written, run
+  `scripts/deploy-device.sh` to build, install, and launch on the paired iPhone.
+  The script holds the sandbox workaround flags; do not re-derive them.
+- Run it only after the headless package tests pass. Skip it for docs-only or
+  TODO-only changes.
+- Report the real result. If the build, install, or launch fails (phone locked,
+  not paired, signing), say so and show the failing step. Never claim a deploy
+  that did not finish.
+- Never edit signing settings, the bundle ID, or the watch embed to make it pass.

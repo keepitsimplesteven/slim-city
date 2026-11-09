@@ -20,18 +20,19 @@ struct DebugPanel: View {
     @State private var creditAmount = 10
 
     // Simulate
-    @State private var simSource: DebugActions.MetricsSource = .previousDay
     @State private var simDays = 1
     @State private var lastSimResult: String?
 
     // Reset
     @State private var showResetConfirm = false
 
-    private var storeAvailable: Bool { container?.debugHasStore ?? false }
+    // Resource mode (mirrors the container; the VM is the source of truth)
+    private var mode: ResourceMode { viewModel.resourceMode }
 
     var body: some View {
         NavigationStack {
             Form {
+                modeSection
                 addResourceSection
                 simulateSection
                 resetSection
@@ -45,10 +46,40 @@ struct DebugPanel: View {
         }
     }
 
+    // MARK: Resource mode
+
+    private var modeSection: some View {
+        Section {
+            Picker("Mode", selection: Binding(
+                get: { mode },
+                set: { newMode in
+                    if let container { container.debugSetResourceMode(newMode) }
+                    else { viewModel.setResourceMode(newMode) }
+                }
+            )) {
+                Text("HealthKit").tag(ResourceMode.healthKit)
+                Text("Manual").tag(ResourceMode.manual)
+            }
+            .pickerStyle(.segmented)
+            if mode == .healthKit, let container {
+                Button("Sync HealthKit now") {
+                    Task { await container.syncHealthKit() }
+                }
+                Text(container.healthKitStatus)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Resource mode")
+        } footer: {
+            Text("HealthKit: Move ring -> up to 100 gold, Exercise -> up to 30 food, Stand -> up to 12 material per day. Each mode keeps its own wallet. Only the HealthKit wallet is saved; Manual resets when the app restarts.")
+        }
+    }
+
     // MARK: Add X of Y resource
 
     private var addResourceSection: some View {
-        Section("Add resource") {
+        Section {
             Picker("Type", selection: $creditType) {
                 ForEach(ResourceType.allCases, id: \.self) { type in
                     Text(label(for: type)).tag(type)
@@ -58,6 +89,13 @@ struct DebugPanel: View {
             Button("Add \(creditAmount) \(label(for: creditType))") {
                 viewModel.debugCredit(creditType, amount: creditAmount)
             }
+            .disabled(mode == .healthKit)
+        } header: {
+            Text("Add resource")
+        } footer: {
+            if mode == .healthKit {
+                Text("Manual mode only. In HealthKit mode, resources come from your activity.")
+            }
         }
     }
 
@@ -65,17 +103,14 @@ struct DebugPanel: View {
 
     private var simulateSection: some View {
         Section {
-            Picker("Source", selection: $simSource) {
-                Text("Previous day").tag(DebugActions.MetricsSource.previousDay)
-                Text("7-day average").tag(DebugActions.MetricsSource.rollingSevenDayAverage)
-            }
-            .pickerStyle(.segmented)
             Stepper("Days: \(simDays)", value: $simDays, in: 1...30)
             Button("Simulate \(simDays) day\(simDays == 1 ? "" : "s")") {
-                let grant = container?.debugSimulate(days: simDays, source: simSource)
-                lastSimResult = describe(grant)
+                Task {
+                    let grant = await container?.debugSimulate(days: simDays)
+                    lastSimResult = describe(grant)
+                }
             }
-            .disabled(!storeAvailable)
+            .disabled(container == nil)
             if let lastSimResult {
                 Text(lastSimResult)
                     .font(.footnote)
@@ -84,9 +119,7 @@ struct DebugPanel: View {
         } header: {
             Text("Simulate days")
         } footer: {
-            Text(storeAvailable
-                 ? "Pushes synthetic days through the real claim path (respects the backfill cap). Needs at least one real day of metrics to copy from."
-                 : "Unavailable: no persistence store.")
+            Text("Credits yesterday's ring earnings times the number of days to the live wallet. Yesterday with no ring data earns nothing.")
         }
     }
 
@@ -127,8 +160,8 @@ struct DebugPanel: View {
     }
 
     private func describe(_ grant: ResourceBundle?) -> String {
-        guard let grant else { return "Nothing to simulate (no history or no store)." }
-        if grant.isEmpty { return "No grant (no claimable source days)." }
+        guard let grant else { return "Couldn't read Health data." }
+        if grant.isEmpty { return "Nothing earned: no ring data for yesterday." }
         return "Granted ⛏\(grant[.material]) 💰\(grant[.gold]) 🍃\(grant[.food])."
     }
 }

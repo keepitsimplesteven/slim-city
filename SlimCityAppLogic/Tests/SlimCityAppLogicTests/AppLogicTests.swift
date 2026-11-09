@@ -354,7 +354,7 @@ struct CityViewModelDebugTests {
         model.debugReset()
         #expect(model.state.buildings.isEmpty)
         #expect(model.selectedBuildingID == nil)
-        #expect(model.state.wallet == ResourceBundle(material: 100, gold: 100, food: 100))
+        #expect(model.state.wallet == ActivityGrant.startingWallet)
         #expect(model.state.columns == cols && model.state.rows == rows)
         #expect(saves == 1)
     }
@@ -364,15 +364,6 @@ struct CityViewModelDebugTests {
 @MainActor
 struct DebugActionsTests {
     private func day(_ d: Int) -> DayKey { DayKey(year: 2026, month: 6, day: d) }
-
-    /// A ledger service fixed at 2026-06-10 UTC with a 7-day backfill cap, so
-    /// the claim window is [06-04 ... 06-10].
-    private func fixedNow() -> (now: Date, cal: Calendar) {
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = TimeZone(identifier: "UTC")!
-        let now = cal.date(from: DateComponents(year: 2026, month: 6, day: 10))!
-        return (now, cal)
-    }
 
     private func entry(_ d: Int, steps: Int, kcal: Double = 0, mins: Double = 0, claimed: Bool = false) -> DailyLedgerEntry {
         DailyLedgerEntry(day: day(d), metrics: HealthMetrics(stepCount: steps, activeEnergyKilocalories: kcal, exerciseMinutes: mins), isClaimed: claimed)
@@ -386,94 +377,13 @@ struct DebugActionsTests {
         let actions = DebugActions(store: store)
 
         let fresh = try actions.resetPersistedState()
-        #expect(fresh.wallet == ResourceBundle(material: 100, gold: 100, food: 100))
-        #expect(try store.loadGameState()?.wallet == ResourceBundle(material: 100, gold: 100, food: 100))
+        #expect(fresh.wallet == ActivityGrant.startingWallet)
+        #expect(try store.loadGameState()?.wallet == ActivityGrant.startingWallet)
 
         let rows = try store.loadLedgerEntries()
         // Rows remain (no delete API) but are neutralized.
         #expect(rows.count == 2)
         #expect(rows.allSatisfy { $0.metrics == .zero && !$0.isClaimed && !$0.containsUserEnteredData })
-    }
-
-    @Test("simulationMetrics(previousDay) returns the most recent non-zero day")
-    func metricsPrevDay() throws {
-        let store = MemoryStore()
-        try store.upsertLedgerEntry(entry(8, steps: 1000))
-        try store.upsertLedgerEntry(entry(9, steps: 4000))
-        let m = try DebugActions(store: store).simulationMetrics(for: .previousDay)
-        #expect(m?.stepCount == 4000)
-    }
-
-    @Test("simulationMetrics(7-day avg) averages the known history")
-    func metricsAverage() throws {
-        let store = MemoryStore()
-        try store.upsertLedgerEntry(entry(8, steps: 1000, kcal: 100, mins: 10))
-        try store.upsertLedgerEntry(entry(9, steps: 3000, kcal: 200, mins: 30))
-        let m = try DebugActions(store: store).simulationMetrics(for: .rollingSevenDayAverage)
-        #expect(m?.stepCount == 2000)
-        #expect(m?.activeEnergyKilocalories == 150)
-        #expect(m?.exerciseMinutes == 20)
-    }
-
-    @Test("simulationMetrics returns nil when there is no non-zero history")
-    func metricsNoHistory() throws {
-        let store = MemoryStore()
-        #expect(try DebugActions(store: store).simulationMetrics(for: .previousDay) == nil)
-        try store.upsertLedgerEntry(entry(9, steps: 0)) // zero rows don't count
-        #expect(try DebugActions(store: store).simulationMetrics(for: .previousDay) == nil)
-    }
-
-    @Test("simulateDays credits N days of the source metrics through the real claim path")
-    func simulateCredits() throws {
-        let (now, cal) = fixedNow()
-        let store = MemoryStore(state: GameState(wallet: .zero))
-        // One real source day well inside the window.
-        try store.upsertLedgerEntry(entry(6, steps: 1000, kcal: 180, mins: 30, claimed: true))
-        let actions = DebugActions(store: store)
-
-        let grant = try actions.simulateDays(3, source: .previousDay, now: now, calendar: cal)
-        // BalanceConfig.default: 200 steps/material, 18 kcal/gold, 3 min/food.
-        // Per day from (1000,180,30): material 5, gold 10, food 10. ×3 days.
-        #expect(grant == ResourceBundle(material: 15, gold: 30, food: 30))
-        #expect(try store.loadGameState()?.wallet == ResourceBundle(material: 15, gold: 30, food: 30))
-    }
-
-    @Test("simulateDays respects the backfill cap (can't out-run the claim window)")
-    func simulateHonorsCap() throws {
-        let (now, cal) = fixedNow()
-        let store = MemoryStore(state: GameState(wallet: .zero))
-        try store.upsertLedgerEntry(entry(6, steps: 1000, kcal: 180, mins: 30, claimed: true))
-        let actions = DebugActions(store: store)
-
-        // Ask for 30 days; the 7-day window (06-04..06-10) caps the fill at 7
-        // days, but 06-06 is already claimed, so 6 new days are granted.
-        let grant = try actions.simulateDays(30, source: .previousDay, now: now, calendar: cal)
-        // Per day (5,10,10) × 6 days = (30,60,60).
-        #expect(grant == ResourceBundle(material: 30, gold: 60, food: 60))
-    }
-
-    @Test("simulateDays with no source history grants nothing")
-    func simulateNoHistory() throws {
-        let (now, cal) = fixedNow()
-        let store = MemoryStore(state: GameState(wallet: .zero))
-        let grant = try DebugActions(store: store).simulateDays(3, source: .previousDay, now: now, calendar: cal)
-        #expect(grant == .zero)
-        #expect(try store.loadGameState()?.wallet == .zero)
-    }
-
-    @Test("simulateDays is idempotent-safe to spam (already-claimed days aren't re-granted)")
-    func simulateNoDoubleClaim() throws {
-        let (now, cal) = fixedNow()
-        let store = MemoryStore(state: GameState(wallet: .zero))
-        try store.upsertLedgerEntry(entry(6, steps: 1000, kcal: 180, mins: 30, claimed: true))
-        let actions = DebugActions(store: store)
-
-        let first = try actions.simulateDays(3, source: .previousDay, now: now, calendar: cal)
-        let second = try actions.simulateDays(3, source: .previousDay, now: now, calendar: cal)
-        // The window's unclaimed days were filled+claimed on the first call;
-        // the second finds nothing new to claim.
-        #expect(first == ResourceBundle(material: 15, gold: 30, food: 30))
-        #expect(second == .zero)
     }
 }
 #endif
@@ -541,4 +451,219 @@ struct CameraRigTests {
         near.pan(dx: 20, dy: 0, viewWidth: 400)
         #expect(simd_length(near.focus) < simd_length(far.focus))
     }
+}
+
+// MARK: - HealthKit vs Manual resource modes
+
+private struct FakeActivityProvider: ActivitySummaryProviding {
+    var summaries: [ActivitySummary]
+    func requestAuthorization() async throws -> Bool { true }
+    func summaries(from start: DayKey, to end: DayKey) async throws -> [ActivitySummary] { summaries }
+}
+
+@Suite("ActivityGrant")
+struct ActivityGrantTests {
+    private let day = DayKey(year: 2026, month: 11, day: 7)
+
+    @Test("move ring maps to gold by percent of goal, capped at 100")
+    func moveToGold() {
+        func gold(_ kcal: Double) -> Int {
+            ActivityGrant.target(for: ActivitySummary(day: day, moveKilocalories: kcal, moveGoalKilocalories: 500))[.gold]
+        }
+        #expect(gold(0) == 0)
+        #expect(gold(250) == 50)
+        #expect(gold(500) == 100)
+        #expect(gold(1500) == 100)
+    }
+
+    @Test("no move goal grants no gold")
+    func noGoal() {
+        let s = ActivitySummary(day: day, moveKilocalories: 400, moveGoalKilocalories: 0)
+        #expect(ActivityGrant.target(for: s)[.gold] == 0)
+    }
+
+    @Test("exercise minutes map to food 1:1, capped at 30")
+    func exerciseToFood() {
+        #expect(ActivityGrant.target(for: ActivitySummary(day: day, exerciseMinutes: 12.9))[.food] == 12)
+        #expect(ActivityGrant.target(for: ActivitySummary(day: day, exerciseMinutes: 90))[.food] == 30)
+    }
+
+    @Test("stand hours map to material 1:1, capped at 12")
+    func standToMaterial() {
+        #expect(ActivityGrant.target(for: ActivitySummary(day: day, standHours: 7))[.material] == 7)
+        #expect(ActivityGrant.target(for: ActivitySummary(day: day, standHours: 20))[.material] == 12)
+    }
+}
+
+@Suite("HealthKitResourceSync")
+struct HealthKitResourceSyncTests {
+    private let today = DayKey(year: 2026, month: 11, day: 7)
+
+    @Test("credits once, then only growth")
+    func incremental() async throws {
+        let records = InMemoryGrantRecordStore()
+        var credited = ResourceBundle.zero
+
+        let first = ActivitySummary(day: today, moveKilocalories: 250, moveGoalKilocalories: 500, exerciseMinutes: 10, standHours: 4)
+        var sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: [first]), records: records)
+        try await sync.sync(today: today) { credited = credited + $0 }
+        #expect(credited == ResourceBundle(material: 4, gold: 50, food: 10))
+
+        // Same data again: nothing new.
+        var again = ResourceBundle.zero
+        try await sync.sync(today: today) { again = again + $0 }
+        #expect(again.isEmpty)
+
+        // The day grows: only the difference is credited.
+        let grown = ActivitySummary(day: today, moveKilocalories: 500, moveGoalKilocalories: 500, exerciseMinutes: 25, standHours: 6)
+        sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: [grown]), records: records)
+        var delta = ResourceBundle.zero
+        try await sync.sync(today: today) { delta = delta + $0 }
+        #expect(delta == ResourceBundle(material: 2, gold: 50, food: 15))
+        #expect(records.granted(on: today) == ResourceBundle(material: 6, gold: 100, food: 25))
+    }
+
+    @Test("clearing records re-credits the day")
+    func clearRecords() async throws {
+        let records = InMemoryGrantRecordStore()
+        let s = ActivitySummary(day: today, exerciseMinutes: 5)
+        let sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: [s]), records: records)
+        try await sync.sync(today: today) { _ in }
+        records.clear()
+        var credited = ResourceBundle.zero
+        try await sync.sync(today: today) { credited = $0 }
+        #expect(credited == ResourceBundle(food: 5))
+    }
+
+    @Test("days outside the window are ignored")
+    func windowBounds() async throws {
+        let old = ActivitySummary(day: DayKey(year: 2026, month: 10, day: 1), exerciseMinutes: 30)
+        let sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: [old]), records: InMemoryGrantRecordStore())
+        var credited = ResourceBundle.zero
+        try await sync.sync(today: today) { credited = $0 }
+        #expect(credited.isEmpty)
+    }
+}
+
+@MainActor
+@Suite("CityViewModel resource modes")
+struct ResourceModeTests {
+    private func makeVM() -> (CityViewModel, () -> [GameState]) {
+        let vm = CityViewModel(state: GameState(wallet: ResourceBundle(material: 10, gold: 20, food: 30)))
+        var saved: [GameState] = []
+        vm.onStateChanged = { saved.append($0) }
+        return (vm, { saved })
+    }
+
+    @Test("wallets are separate and survive switching")
+    func separateWallets() {
+        let (vm, _) = makeVM()
+        vm.setResourceMode(.manual)
+        vm.debugCredit(.gold, amount: 500)
+        #expect(vm.state.wallet[.gold] == 600)   // manual started at 100
+        vm.setResourceMode(.healthKit)
+        #expect(vm.state.wallet == ResourceBundle(material: 10, gold: 20, food: 30))
+        vm.setResourceMode(.manual)
+        #expect(vm.state.wallet[.gold] == 600)
+    }
+
+    @Test("only the HealthKit wallet is ever persisted")
+    func persistsOnlyHealthKit() {
+        let (vm, saved) = makeVM()
+        vm.setResourceMode(.manual)
+        vm.debugCredit(.material, amount: 999)
+        let last = saved().last
+        #expect(last?.wallet == ResourceBundle(material: 10, gold: 20, food: 30))
+    }
+
+    @Test("health credits land in the HealthKit wallet even in manual mode")
+    func creditWhileManual() {
+        let (vm, saved) = makeVM()
+        vm.setResourceMode(.manual)
+        let manualBefore = vm.state.wallet
+        vm.creditHealthKit(ResourceBundle(food: 5))
+        #expect(vm.state.wallet == manualBefore)
+        #expect(saved().last?.wallet[.food] == 35)
+        vm.setResourceMode(.healthKit)
+        #expect(vm.state.wallet[.food] == 35)
+    }
+
+    @Test("placing in manual mode spends the manual wallet only")
+    func placeInManual() {
+        let (vm, saved) = makeVM()
+        vm.setResourceMode(.manual)   // manual wallet = 100/100/100
+        let cost = vm.catalog.definition(for: "house")!.cost
+        let result = vm.place(buildingID: "house", at: GridPosition(column: 0, row: 0))
+        #expect(result.didPlace)
+        #expect(vm.state.wallet == ResourceBundle(material: 100, gold: 100, food: 100) - cost)
+        #expect(saved().last?.wallet == ResourceBundle(material: 10, gold: 20, food: 30))
+    }
+}
+
+// MARK: - Stream 6: onboarding wallet, first-sync baseline, simulate yesterday
+
+@Suite("Onboarding + simulate")
+struct OnboardingTests {
+    private let today = DayKey(year: 2026, month: 11, day: 7)
+    private let yesterday = DayKey(year: 2026, month: 11, day: 6)
+
+    @Test("starting wallet is one full day of each resource")
+    func startingWallet() {
+        #expect(ActivityGrant.startingWallet == ResourceBundle(material: 12, gold: 100, food: 30))
+    }
+
+    @Test("first sync skips past days and pays only today")
+    func firstSyncBaseline() async throws {
+        let records = InMemoryGrantRecordStore()
+        let past = ActivitySummary(day: yesterday, moveKilocalories: 500, moveGoalKilocalories: 500, exerciseMinutes: 30, standHours: 12)
+        let now = ActivitySummary(day: today, moveKilocalories: 100, moveGoalKilocalories: 500, exerciseMinutes: 6, standHours: 2)
+        let sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: [past, now]), records: records)
+
+        var credited = ResourceBundle.zero
+        try await sync.sync(today: today) { credited = credited + $0 }
+        #expect(credited == ResourceBundle(material: 2, gold: 20, food: 6))
+        #expect(records.hasBaseline)
+
+        // Later syncs still ignore the already-recorded past day.
+        var again = ResourceBundle.zero
+        try await sync.sync(today: today) { again = again + $0 }
+        #expect(again.isEmpty)
+    }
+
+    @Test("clearing records resets the baseline")
+    func clearResetsBaseline() async throws {
+        let records = InMemoryGrantRecordStore()
+        let sync = HealthKitResourceSync(provider: FakeActivityProvider(summaries: []), records: records)
+        try await sync.sync(today: today) { _ in }
+        #expect(records.hasBaseline)
+        records.clear()
+        #expect(!records.hasBaseline)
+    }
+
+    @Test("simulated grant is yesterday's earnings times the day count")
+    func simulatedGrant() {
+        let y = ActivitySummary(day: yesterday, moveKilocalories: 250, moveGoalKilocalories: 500, exerciseMinutes: 10, standHours: 4)
+        #expect(ActivityGrant.simulatedGrant(for: y, days: 3) == ResourceBundle(material: 12, gold: 150, food: 30))
+    }
+
+    @Test("simulated grant is empty without ring data or days")
+    func simulatedEmpty() {
+        let y = ActivitySummary(day: yesterday, moveKilocalories: 250, moveGoalKilocalories: 500)
+        #expect(ActivityGrant.simulatedGrant(for: nil, days: 3).isEmpty)
+        #expect(ActivityGrant.simulatedGrant(for: y, days: 0).isEmpty)
+    }
+
+#if DEBUG
+    @MainActor
+    @Test("debug reset restores the starting wallet in HealthKit mode and keeps manual at 100s")
+    func resetWallets() {
+        let vm = CityViewModel(state: GameState(wallet: ResourceBundle(material: 1, gold: 2, food: 3)))
+        vm.debugReset()
+        #expect(vm.state.wallet == ActivityGrant.startingWallet)
+        vm.setResourceMode(.manual)
+        #expect(vm.state.wallet == ResourceBundle(material: 100, gold: 100, food: 100))
+        vm.setResourceMode(.healthKit)
+        #expect(vm.state.wallet == ActivityGrant.startingWallet)
+    }
+#endif
 }
