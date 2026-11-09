@@ -451,6 +451,41 @@ struct CameraRigTests {
         near.pan(dx: 20, dy: 0, viewWidth: 400)
         #expect(simd_length(near.focus) < simd_length(far.focus))
     }
+
+    @Test("the view center taps the camera focus")
+    func tapCenter() {
+        var rig = CameraRig(gridSpan: 10)
+        rig.pan(dx: 30, dy: -12, viewWidth: 400)
+        let p = rig.groundPoint(screenX: 200, screenY: 400, viewWidth: 400, viewHeight: 800)
+        #expect(simd_length(p - rig.focus) < 1e-9)
+    }
+
+    @Test("tapping right of center lands along screen-right")
+    func tapRight() {
+        let rig = CameraRig(gridSpan: 10)
+        let p = rig.groundPoint(screenX: 300, screenY: 400, viewWidth: 400, viewHeight: 800)
+        // Half the half-width to the right, level with the center.
+        let expected = (rig.scale / 2) * CameraRig.screenRight
+        #expect(simd_length(p - expected) < 1e-9)
+    }
+
+    @Test("tapping above center lands farther along screen-up, stretched by the ground tilt")
+    func tapUp() {
+        let rig = CameraRig(gridSpan: 10)
+        let p = rig.groundPoint(screenX: 200, screenY: 300, viewWidth: 400, viewHeight: 800)
+        let expected = (rig.scale / 2 * CameraRig.verticalFactor) * CameraRig.screenUp
+        #expect(simd_length(p - expected) < 1e-9)
+    }
+
+    @Test("a pan then a tap on the old center returns the old focus")
+    func panThenTapRoundTrip() {
+        var rig = CameraRig(gridSpan: 10)
+        let before = rig.focus
+        rig.pan(dx: 40, dy: 25, viewWidth: 400)
+        // Content follows the finger, so the old center is now 40 right, 25 down.
+        let p = rig.groundPoint(screenX: 240, screenY: 425, viewWidth: 400, viewHeight: 800)
+        #expect(simd_length(p - before) < 1e-9)
+    }
 }
 
 // MARK: - HealthKit vs Manual resource modes
