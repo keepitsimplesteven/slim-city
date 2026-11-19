@@ -66,3 +66,5 @@ Worked example. Farm A is level 1: +10 food, x1.1 per person, 1 person placed. F
 - Farms follow the same rules as every other building. The refund assumption above stands.
 
 **Update from ticket 03:** the ring's base yield (100) is counted as one flat add. All adds, including building adds, are scaled by ring progress. See [Live earning model](03-live-earning-model.md) for the full formula.
+
+**Update from ticket 06:** a placed building also stores its anchor cell and rotation. The effect scope list gains a reserved "neighbors" value that nothing evaluates yet.
