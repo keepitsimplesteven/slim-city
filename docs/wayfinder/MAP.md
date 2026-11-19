@@ -24,12 +24,12 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 
 - [Building data model](tickets/02-building-data-model.md): one catalog of data. Each placed building owns its upgrades and people. Effects either add or multiply, and add x multiply gives the total. Costs grow by 1.2x per copy, tunable.
 - [Live earning model](tickets/03-live-earning-model.md): earned = (base + adds) x min(progress, 1.5) x multipliers. Each sync pays only new progress. The day's goal is fixed at the start of the day. Midnight local reset. 7-day catch-up.
+- [Boost timing and anti-gaming](tickets/04-boost-timing.md): exercise is paid at the building state when it started. A timed log of changes (7 days) answers that. No delay. Phone clock for now, behind an interface so server time can replace it. Typed-in entries pass for now, with a switch.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
-| [Boost timing and anti-gaming](tickets/04-boost-timing.md) | grilling (HITL) | 01, 03 |
 | [People, workers and food](tickets/05-people-workers-food.md) | grilling (HITL) | 02, 03 |
 | [Grid, footprints and edit mode](tickets/06-grid-and-edit-mode.md) | grilling (HITL) | 02 |
 | [Gold, steps and the Bank](tickets/07-gold-and-bank.md) | grilling (HITL) | 01, 03 |
