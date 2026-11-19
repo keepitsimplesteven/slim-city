@@ -78,3 +78,6 @@ iOSInjectionProject/
 
 ## Simulator screenshots captured during verification
 sim-screenshot*.png
+
+## Third-party art packs (e.g. Kenney); kept local, not committed
+Assets/
