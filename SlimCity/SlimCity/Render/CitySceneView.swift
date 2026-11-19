@@ -25,6 +25,12 @@ final class CitySceneController {
     /// (the rig's value is the half-width of the view in world units).
     private static let cameraScaleFactor: Float = 1
 
+    /// Ground colors sampled from the Kenney Fantasy Town colormap, so the board
+    /// matches the models: tree foliage (#3B9C74) for tiles, hedge highlight
+    /// (#4EB583) for the grid lines between them.
+    private static let groundGreen = PlatformColor(red: 0x3B / 255, green: 0x9C / 255, blue: 0x74 / 255, alpha: 1)
+    private static let gridLineGreen = PlatformColor(red: 0x4E / 255, green: 0xB5 / 255, blue: 0x83 / 255, alpha: 1)
+
     /// Pans the view by a drag delta in points (content follows the finger).
     func pan(dx: Double, dy: Double, viewWidth: Double) {
         rig.pan(dx: dx, dy: dy, viewWidth: viewWidth)
@@ -110,8 +116,8 @@ final class CitySceneController {
         let width = Float(Double(state.columns) * mapper.tileSize)
         let depth = Float(Double(state.rows) * mapper.tileSize)
         // The floor shows through the gaps between tiles, so it acts as the
-        // grid outline: the tile color tinted slightly toward white.
-        let floorMaterial = SimpleMaterial(color: PlatformColor(white: 0.38, alpha: 1), roughness: 1, isMetallic: false)
+        // grid outline: a lighter green than the tiles (Kenney hedge highlight).
+        let floorMaterial = SimpleMaterial(color: Self.gridLineGreen, roughness: 1, isMetallic: false)
         let floor = ModelEntity(
             mesh: .generateBox(width: width, height: 0.05, depth: depth),
             materials: [floorMaterial]
@@ -120,9 +126,9 @@ final class CitySceneController {
         floor.name = "ground"
         root.addChild(floor)
 
-        // One slightly inset tile per cell in the original ground color.
+        // One slightly inset tile per cell, in Kenney's tree-foliage green.
         let inset = Float(mapper.tileSize) * 0.94
-        let tileMaterial = SimpleMaterial(color: PlatformColor(white: 0.22, alpha: 1), roughness: 1, isMetallic: false)
+        let tileMaterial = SimpleMaterial(color: Self.groundGreen, roughness: 1, isMetallic: false)
         let tileMesh = MeshResource.generateBox(width: inset, height: 0.01, depth: inset)
         let tilesRoot = Entity()
         tilesRoot.name = "groundTiles"
