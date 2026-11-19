@@ -1,0 +1,57 @@
+# Map: Slim City MVP
+
+Label: `wayfinder:map`. Tracker: local markdown. Tickets are files in `tickets/`.
+
+## Destination
+
+A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core live-earning gameplay loop plus empty stubs for the advanced features. Reached when no open ticket remains and the fog is cleared or ruled out.
+
+## Notes
+
+- Raw brainstorm, verbatim: [NOTES.md](NOTES.md). Never edit it. Quote it from tickets.
+- Rule for every ticket: buildings, costs, upgrades, caps, rates, resource-to-ring links, and delays are **data, not code**. Easy to tweak during development.
+- Stable, leave alone: HealthKit integration, camera controls (pan/zoom). Everything else is a draft and may change when a closed ticket says so, including the frozen APIs in `.kiro/steering/slim-city-constraints.md`.
+- Skills for HITL tickets: `grilling`, `domain-modeling`. Research tickets: `research`. Prototype tickets: `prototype`.
+- Ticket format: front matter with `type`, `status` (open/closed), `blocked-by`, `claimed`. Frontier = open, unclaimed, every `blocked-by` closed.
+- Find the frontier: `grep -L 'status: closed' docs/wayfinder/tickets/*.md`
+- Spec feed: Destination + Decisions so far -> `requirements.md`. Closed tickets -> `design.md`. `tasks.md` is written last.
+
+## Decisions so far
+
+- [Scope and ground rules](tickets/00-scope-and-ground-rules.md): MVP is the live-earning loop, four resources, per-building footprints, edit mode with full refund on delete, all buildings placeable with later ones as stubs.
+
+## Open tickets (index only; detail lives in each file)
+
+| Ticket | Type | Blocked by |
+|---|---|---|
+| [HealthKit capabilities](tickets/01-healthkit-capabilities.md) | research (AFK) | none |
+| [Building data model](tickets/02-building-data-model.md) | grilling (HITL) | none |
+| [Live earning model](tickets/03-live-earning-model.md) | grilling (HITL) | 01 |
+| [Boost timing and anti-gaming](tickets/04-boost-timing.md) | grilling (HITL) | 01, 03 |
+| [People, workers and food](tickets/05-people-workers-food.md) | grilling (HITL) | 02, 03 |
+| [Grid, footprints and edit mode](tickets/06-grid-and-edit-mode.md) | grilling (HITL) | 02 |
+| [Gold, steps and the Bank](tickets/07-gold-and-bank.md) | grilling (HITL) | 01, 03 |
+| [Village Hall levels and unlocks](tickets/08-village-hall.md) | grilling (HITL) | 02 |
+| [Stub contract](tickets/09-stub-contract.md) | grilling (HITL) | 02, 08 |
+| [Migration from current code](tickets/10-migration-from-current-code.md) | grilling (HITL) | 03, 02 |
+| [Economy numbers](tickets/11-economy-numbers.md) | prototype (HITL) | 03, 05, 07 |
+
+## Not yet specified
+
+- Food shortage: what "ration" does when food runs out. Hangs on People, workers and food.
+- Upgrade shape: per-building levels vs. "all farms get x mult". Hangs on Building data model.
+- Onboarding: Village Hall first, "go exercise and come back". Hangs on Village Hall and Grid.
+- The chase: what happens when everything is built. Perfect weeks, perfect year, special buildings. Hangs on Economy numbers.
+- Medals: HealthKit cannot read watch badges, so they must be built in. Hangs on HealthKit capabilities.
+- Art: Kenney assets at a 2x2 sub-grid per tile. Hangs on Grid and footprints.
+- Mission board content. Hangs on Stub contract.
+
+## Out of scope
+
+- Real networking: visiting villages, alliances, shared goals, requesting wood. Marketplace is a stub only.
+- Bot trading partner.
+- Quest and bounty content, randomized tasks.
+- Medal rewards and reskins.
+- Records content (statistics, milestones).
+- The "pledge and lock your day" gameplay loop. Replaced by live earning.
+- Passive/idle tick production. Earning is driven by HealthKit, not time.
