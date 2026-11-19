@@ -22,11 +22,12 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 
 - [HealthKit capabilities](tickets/01-healthkit-capabilities.md): goals, sample timestamps, steps and user-entered flags are readable. No awards API. Delivery is not truly live (hourly at best), and background delivery is not set up in the app yet.
 
+- [Building data model](tickets/02-building-data-model.md): one catalog of data. Each placed building owns its upgrades and people. Effects either add or multiply, and add x multiply gives the total. Costs grow by 1.2x per copy, tunable.
+
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
-| [Building data model](tickets/02-building-data-model.md) | grilling (HITL) | none |
 | [Live earning model](tickets/03-live-earning-model.md) | grilling (HITL) | 01 |
 | [Boost timing and anti-gaming](tickets/04-boost-timing.md) | grilling (HITL) | 01, 03 |
 | [People, workers and food](tickets/05-people-workers-food.md) | grilling (HITL) | 02, 03 |
@@ -40,7 +41,6 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 ## Not yet specified
 
 - Food shortage: what "ration" does when food runs out. Hangs on People, workers and food.
-- Upgrade shape: per-building levels vs. "all farms get x mult". Hangs on Building data model.
 - Onboarding: Village Hall first, "go exercise and come back". Hangs on Village Hall and Grid.
 - The chase: what happens when everything is built. Perfect weeks, perfect year, special buildings. Hangs on Economy numbers.
 - Medals: HealthKit cannot read watch badges (confirmed), so they must be built in. Rewards are out of scope for now.
