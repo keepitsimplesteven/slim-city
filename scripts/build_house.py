@@ -20,7 +20,11 @@ import shutil
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PIECES = os.path.join(ROOT, "Assets", "Models", "OBJ format")
+# Set KENNEY_PACK to the pack folder if it lives outside the repo (e.g. a
+# staging directory); default is the git-ignored Assets/ folder.
+PIECES = os.path.join(
+    os.environ.get("KENNEY_PACK", os.path.join(ROOT, "Assets")), "Models", "OBJ format"
+)
 
 CELL = 0.5            # a cell is half a tile; also the piece scale
 FLOORS = 2            # stories of walls; each is CELL tall
