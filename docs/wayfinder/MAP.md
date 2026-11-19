@@ -25,12 +25,12 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [Building data model](tickets/02-building-data-model.md): one catalog of data. Each placed building owns its upgrades and people. Effects either add or multiply, and add x multiply gives the total. Costs grow by 1.2x per copy, tunable.
 - [Live earning model](tickets/03-live-earning-model.md): earned = (base + adds) x min(progress, 1.5) x multipliers. Each sync pays only new progress. The day's goal is fixed at the start of the day. Midnight local reset. 7-day catch-up.
 - [Boost timing and anti-gaming](tickets/04-boost-timing.md): exercise is paid at the building state when it started. A timed log of changes (7 days) answers that. No delay. Phone clock for now, behind an interface so server time can replace it. Typed-in entries pass for now, with a switch.
+- [People, workers and food](tickets/05-people-workers-food.md): houses add people, people are placed up to each building's capacity, everyone eats at midnight, a shortage warns and gives one day of grace. Deleting a house frees the most recently placed people.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
-| [People, workers and food](tickets/05-people-workers-food.md) | grilling (HITL) | 02, 03 |
 | [Grid, footprints and edit mode](tickets/06-grid-and-edit-mode.md) | grilling (HITL) | 02 |
 | [Gold, steps and the Bank](tickets/07-gold-and-bank.md) | grilling (HITL) | 01, 03 |
 | [Village Hall levels and unlocks](tickets/08-village-hall.md) | grilling (HITL) | 02 |
@@ -40,7 +40,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 
 ## Not yet specified
 
-- Food shortage: what "ration" does when food runs out. Hangs on People, workers and food.
+- Food shortage punishment: what happens after the grace day. A switched-off hook exists. Hangs on Economy numbers.
 - Onboarding: Village Hall first, "go exercise and come back". Hangs on Village Hall and Grid.
 - The chase: what happens when everything is built. Perfect weeks, perfect year, special buildings. Hangs on Economy numbers.
 - Medals: HealthKit cannot read watch badges (confirmed), so they must be built in. Rewards are out of scope for now.
