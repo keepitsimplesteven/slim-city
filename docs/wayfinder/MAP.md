@@ -27,12 +27,12 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [Boost timing and anti-gaming](tickets/04-boost-timing.md): exercise is paid at the building state when it started. A timed log of changes (7 days) answers that. No delay. Phone clock for now, behind an interface so server time can replace it. Typed-in entries pass for now, with a switch.
 - [People, workers and food](tickets/05-people-workers-food.md): houses add people, people are placed up to each building's capacity, everyone eats at midnight, a shortage warns and gives one day of grace. Deleting a house frees the most recently placed people.
 - [Grid, footprints and edit mode](tickets/06-grid-and-edit-mode.md): buildings rotate in quarter turns. Place by tap, preview, rotate, confirm. Edit mode for move, rotate, delete. One Village Hall, not deletable. Grid grows by a ring on every side, positions stored from the center. Neighbor bonuses are a reserved, unused slot.
+- [Gold, steps and the Bank](tickets/07-gold-and-bank.md): gold earns by the same formula. Source is steps, goal 10,000 fixed in data, base 1,000 (10 steps per gold). The Bank works like the other producers. No storage cap. Each resource has its own base, source and goal in data.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
-| [Gold, steps and the Bank](tickets/07-gold-and-bank.md) | grilling (HITL) | 01, 03 |
 | [Village Hall levels and unlocks](tickets/08-village-hall.md) | grilling (HITL) | 02 |
 | [Stub contract](tickets/09-stub-contract.md) | grilling (HITL) | 02, 08 |
 | [Migration from current code](tickets/10-migration-from-current-code.md) | grilling (HITL) | 03, 02 |
@@ -46,6 +46,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - Medals: HealthKit cannot read watch badges (confirmed), so they must be built in. Rewards are out of scope for now.
 - Screens and flows: build list, building card, edit mode controls, warnings, onboarding. Needs its own tickets. Hangs on all the closed ones.
 - Neighbor bonuses: a building that boosts nearby ones, or bonuses for touching groups. Reserved slot only, not MVP.
+- Gold exchange: buying other resources with gold at a steep price, possibly a building with upgrades. Hangs on Economy numbers.
 - Art: Kenney assets at a 2x2 sub-grid per tile. Hangs on Grid and footprints.
 - Mission board content. Hangs on Stub contract.
 
