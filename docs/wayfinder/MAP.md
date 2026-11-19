@@ -20,11 +20,12 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 
 - [Scope and ground rules](tickets/00-scope-and-ground-rules.md): MVP is the live-earning loop, four resources, per-building footprints, edit mode with full refund on delete, all buildings placeable with later ones as stubs.
 
+- [HealthKit capabilities](tickets/01-healthkit-capabilities.md): goals, sample timestamps, steps and user-entered flags are readable. No awards API. Delivery is not truly live (hourly at best), and background delivery is not set up in the app yet.
+
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
-| [HealthKit capabilities](tickets/01-healthkit-capabilities.md) | research (AFK) | none |
 | [Building data model](tickets/02-building-data-model.md) | grilling (HITL) | none |
 | [Live earning model](tickets/03-live-earning-model.md) | grilling (HITL) | 01 |
 | [Boost timing and anti-gaming](tickets/04-boost-timing.md) | grilling (HITL) | 01, 03 |
@@ -42,7 +43,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - Upgrade shape: per-building levels vs. "all farms get x mult". Hangs on Building data model.
 - Onboarding: Village Hall first, "go exercise and come back". Hangs on Village Hall and Grid.
 - The chase: what happens when everything is built. Perfect weeks, perfect year, special buildings. Hangs on Economy numbers.
-- Medals: HealthKit cannot read watch badges, so they must be built in. Hangs on HealthKit capabilities.
+- Medals: HealthKit cannot read watch badges (confirmed), so they must be built in. Rewards are out of scope for now.
 - Art: Kenney assets at a 2x2 sub-grid per tile. Hangs on Grid and footprints.
 - Mission board content. Hangs on Stub contract.
 

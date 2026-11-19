@@ -1,8 +1,8 @@
 ---
 type: research
-status: open
+status: closed
 blocked-by: []
-claimed:
+claimed: steven
 ---
 
 # HealthKit capabilities
@@ -19,3 +19,24 @@ What can HealthKit give us, and how fast? Find, from Apple documentation:
 6. Can we read Fitness awards (perfect week and so on)? Notes say probably not.
 
 Record: which API for each, limits, and anything that breaks the "live earning" idea.
+
+## Resolution
+
+Full findings with source links: [research/01-healthkit-capabilities.md](../research/01-healthkit-capabilities.md).
+
+1. **Goals:** yes. `HKActivitySummary` exposes Move, Exercise and Stand goals. Docs do not say when a mid-day goal change takes effect.
+2. **Timestamps:** partly. Activity summaries are day-level with no times. Samples and `HKWorkout` have `startDate` and `endDate`. Apple does not say summed samples equal the ring value.
+3. **Sync delay:** the Watch-to-phone delay is not documented. Background delivery works with the `com.apple.developer.healthkit.background-delivery` entitlement, wakes at most hourly for step count on iOS, and may not read data while the phone is locked. Docs do not say the activity summary type can be observed in the background.
+4. **User-entered:** yes. `HKMetadataKeyWasUserEntered` is set by the writing app. A missing key does not prove a device sample. Summaries have no such flag.
+5. **Steps:** yes. Cumulative quantity sample, separate from the summary.
+6. **Awards:** no. No award API found. Medals must be built in.
+
+**What this means for live earning:**
+- Credit must key off sample or workout `endDate`, not the summary.
+- Late-syncing samples keep their old `endDate`.
+- Wake-ups are limited, so "live" means "as fast as HealthKit lets us", often about hourly.
+- Goals can change under a "percent of goal" payout.
+
+**Current app code:**
+- Reads Move, Exercise, Stand via `HKActivitySummaryQuery` (`SlimCity/SlimCity/Health/ActivitySummaryService.swift`) and steps, energy, exercise minutes (`HealthKitService.swift`).
+- Gaps: reads only the Move goal, ignores workouts, no observer or background delivery, and the entitlements file lacks the background-delivery entitlement.
