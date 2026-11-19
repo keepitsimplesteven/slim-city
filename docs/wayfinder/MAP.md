@@ -23,12 +23,12 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [HealthKit capabilities](tickets/01-healthkit-capabilities.md): goals, sample timestamps, steps and user-entered flags are readable. No awards API. Delivery is not truly live (hourly at best), and background delivery is not set up in the app yet.
 
 - [Building data model](tickets/02-building-data-model.md): one catalog of data. Each placed building owns its upgrades and people. Effects either add or multiply, and add x multiply gives the total. Costs grow by 1.2x per copy, tunable.
+- [Live earning model](tickets/03-live-earning-model.md): earned = (base + adds) x min(progress, 1.5) x multipliers. Each sync pays only new progress. The day's goal is fixed at the start of the day. Midnight local reset. 7-day catch-up.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
-| [Live earning model](tickets/03-live-earning-model.md) | grilling (HITL) | 01 |
 | [Boost timing and anti-gaming](tickets/04-boost-timing.md) | grilling (HITL) | 01, 03 |
 | [People, workers and food](tickets/05-people-workers-food.md) | grilling (HITL) | 02, 03 |
 | [Grid, footprints and edit mode](tickets/06-grid-and-edit-mode.md) | grilling (HITL) | 02 |

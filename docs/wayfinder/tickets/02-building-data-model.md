@@ -59,3 +59,10 @@ Worked example. Farm A is level 1: +10 food, x1.1 per person, 1 person placed. F
 - `06`: how footprints fit on the grid, and edit mode.
 - `08`: the Village Hall unlock table.
 - `10`: how `BuildingDefinition`, `BuildingCatalog` and `PlacedBuilding` change to match this model.
+
+**Clarified by the user after closing:**
+- Price of the next copy always follows the formula from the number of copies owned. It does not depend on what was paid for older copies.
+- Food is generally not a building cost. It feeds people. Build costs are mostly wood, stone and gold. The data still allows any of the four.
+- Farms follow the same rules as every other building. The refund assumption above stands.
+
+**Update from ticket 03:** the ring's base yield (100) is counted as one flat add. All adds, including building adds, are scaled by ring progress. See [Live earning model](03-live-earning-model.md) for the full formula.
