@@ -1,7 +1,7 @@
 ---
 type: grilling
 status: open
-blocked-by: [02, 08]
+blocked-by: [02]
 claimed:
 ---
 
