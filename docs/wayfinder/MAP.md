@@ -29,13 +29,13 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [Grid, footprints and edit mode](tickets/06-grid-and-edit-mode.md): buildings rotate in quarter turns. Place by tap, preview, rotate, confirm. Edit mode for move, rotate, delete. One Village Hall, not deletable. Grid grows by a ring on every side, positions stored from the center. Neighbor bonuses are a reserved, unused slot.
 - [Gold, steps and the Bank](tickets/07-gold-and-bank.md): gold earns by the same formula. Source is steps, goal 10,000 fixed in data, base 1,000 (10 steps per gold). The Bank works like the other producers. No storage cap. Each resource has its own base, source and goal in data.
 - [Village Hall levels and unlocks](tickets/08-village-hall.md): the Hall is a normal building with 5 levels. Starter unlock list is data. Grid 8x8 plus a ring per level. A Hall upgrade needs one of each current-level building, no resource cost, and fills one effort bar per source. New game: only a free Hall, and nothing is tracked until it is placed.
+- [Stub contract](tickets/09-stub-contract.md): a stub is a normal building with no effects. Tapping opens a shared "coming soon" screen, or the real feature if one is registered under its `featureId`. Deleting a building erases its feature data. Switched-off hooks stay as named settings in data.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
 | [Construction effort (scaffolding)](tickets/12-construction-effort.md) | grilling (HITL) | none |
-| [Stub contract](tickets/09-stub-contract.md) | grilling (HITL) | none |
 | [Migration from current code](tickets/10-migration-from-current-code.md) | grilling (HITL) | 03, 02 |
 | [Economy numbers](tickets/11-economy-numbers.md) | prototype (HITL) | 12 |
 
@@ -46,6 +46,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - The chase: what happens when everything is built. Perfect weeks, perfect year, special buildings. Hangs on Economy numbers.
 - Medals: HealthKit cannot read watch badges (confirmed), so they must be built in. Rewards are out of scope for now.
 - Screens and flows: build list, building card, edit mode controls, warnings, onboarding. Needs its own tickets. Hangs on all the closed ones.
+- Switch-on points for hooks: food penalty (turns on after play tests, ticket 11), neighbor bonuses (when a neighbor ticket is charted), typed-in entry filter (when anti-cheat is built).
 - Neighbor bonuses: a building that boosts nearby ones, or bonuses for touching groups. Reserved slot only, not MVP.
 - Gold exchange: buying other resources with gold at a steep price, possibly a building with upgrades. Hangs on Economy numbers.
 - Art: Kenney assets at a 2x2 sub-grid per tile. Hangs on Grid and footprints.

@@ -70,3 +70,5 @@ Worked example. Farm A is level 1: +10 food, x1.1 per person, 1 person placed. F
 **Update from ticket 06:** a placed building also stores its anchor cell and rotation. The effect scope list gains a reserved "neighbors" value that nothing evaluates yet.
 
 **Update from ticket 08:** an upgrade node can require specific buildings to be owned, and can have effort bars (one target per source) instead of, or as well as, a resource cost. Ticket 12 decides how far effort bars reach.
+
+**Update from ticket 09:** a building definition may name a `featureId`. Feature data is stored apart from the city and is erased when its building is deleted.
