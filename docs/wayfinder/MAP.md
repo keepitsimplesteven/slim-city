@@ -32,6 +32,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [Stub contract](tickets/09-stub-contract.md): a stub is a normal building with no effects. Tapping opens a shared "coming soon" screen, or the real feature if one is registered under its `featureId`. Deleting a building erases its feature data. Switched-off hooks stay as named settings in data.
 - [Construction effort (scaffolding)](tickets/12-construction-effort.md): every build and upgrade is paid up front, then needs effort: one bar per cost resource, filled by the matching ring at base rates, times construction workers. Cancel refunds resources and loses effort. A finished build shows an "!" and opens when tapped. The Hall gives 1 construction worker and a Carpenter's Workshop adds more. The fill rule is swappable.
 - [Migration from current code](tickets/10-migration-from-current-code.md): all once-per-day logic goes, one wallet, four resources, new building model with corner anchors, a change log, live sync built from `HealthKitResourceSync`. Old saves are wiped. The Hall is a paid scaffold, not free. Watch stays unused.
+- [Kenney asset inventory](tickets/19-kenney-inventory.md): four CC0 3D packs, no USDZ in them. House exists, Marketplace fits best, others need pieces made or composed. Build stages are possible with towers, a Mini Forest hut and partial builds. Repo has an OBJ-to-USDZ route.
 
 ## Open tickets (index only; detail lives in each file)
 
@@ -43,8 +44,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 | [HUD and live feedback](tickets/15-hud-and-feedback.md) | grilling (HITL) | 13 |
 | [First run and permissions](tickets/16-first-run-and-permissions.md) | grilling (HITL) | 13 |
 | [Guidance and empty states](tickets/17-guidance-and-empty-states.md) | grilling (HITL) | 15, 16 |
-| [Art plan: build stages and Kenney pieces](tickets/18-art-plan.md) | grilling (HITL) | 19 |
-| [Kenney asset inventory](tickets/19-kenney-inventory.md) | research (AFK) | none |
+| [Art plan: build stages and Kenney pieces](tickets/18-art-plan.md) | grilling (HITL) | none |
 
 ## Not yet specified
 
