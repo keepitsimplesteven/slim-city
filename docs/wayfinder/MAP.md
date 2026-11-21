@@ -38,20 +38,23 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 | Ticket | Type | Blocked by |
 |---|---|---|
 | [Economy numbers](tickets/11-economy-numbers.md) | prototype (HITL) | none |
+| [Screen inventory and navigation](tickets/13-screen-inventory.md) | grilling (HITL) | none |
+| [Build list, building card and construction UI](tickets/14-build-and-card-ui.md) | prototype (HITL) | 13 |
+| [HUD and live feedback](tickets/15-hud-and-feedback.md) | grilling (HITL) | 13 |
+| [First run and permissions](tickets/16-first-run-and-permissions.md) | grilling (HITL) | 13 |
+| [Guidance and empty states](tickets/17-guidance-and-empty-states.md) | grilling (HITL) | 15, 16 |
+| [Art plan: build stages and Kenney pieces](tickets/18-art-plan.md) | grilling (HITL) | 19 |
+| [Kenney asset inventory](tickets/19-kenney-inventory.md) | research (AFK) | none |
 
 ## Not yet specified
 
 - Food shortage punishment: what happens after the grace day. A switched-off hook exists. Hangs on Economy numbers.
-- Tutorial and first-run flow: needs its own tickets. Hangs on Screens and flows.
 - The chase: what happens when everything is built. Perfect weeks, perfect year, special buildings. Hangs on Economy numbers.
 - Medals: HealthKit cannot read watch badges (confirmed), so they must be built in. Rewards are out of scope for now.
-- Screens and flows: build list, building card, edit mode controls, warnings, onboarding. Needs its own tickets. Hangs on all the closed ones.
 - Switch-on points for hooks: food penalty (turns on after play tests, ticket 11), neighbor bonuses (when a neighbor ticket is charted), typed-in entry filter (when anti-cheat is built).
 - Neighbor bonuses: a building that boosts nearby ones, or bonuses for touching groups. Reserved slot only, not MVP.
 - Gold exchange: buying other resources with gold at a steep price, possibly a building with upgrades. Hangs on Economy numbers.
 - Carpenter's Workshop unlock level and numbers. Hangs on Economy numbers.
-- Art: 4 build stages per building and upgrade (25, 50, 75, 100%). Hangs on Grid and footprints.
-- Art: Kenney assets at a 2x2 sub-grid per tile. Hangs on Grid and footprints.
 - Mission board content. Hangs on Stub contract.
 
 ## Out of scope
