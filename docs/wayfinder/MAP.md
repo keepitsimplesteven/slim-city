@@ -31,12 +31,12 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [Village Hall levels and unlocks](tickets/08-village-hall.md): the Hall is a normal building with 5 levels. Starter unlock list is data. Grid 8x8 plus a ring per level. A Hall upgrade needs one of each current-level building, no resource cost, and fills one effort bar per source. New game: only a free Hall, and nothing is tracked until it is placed.
 - [Stub contract](tickets/09-stub-contract.md): a stub is a normal building with no effects. Tapping opens a shared "coming soon" screen, or the real feature if one is registered under its `featureId`. Deleting a building erases its feature data. Switched-off hooks stay as named settings in data.
 - [Construction effort (scaffolding)](tickets/12-construction-effort.md): every build and upgrade is paid up front, then needs effort: one bar per cost resource, filled by the matching ring at base rates, times construction workers. Cancel refunds resources and loses effort. A finished build shows an "!" and opens when tapped. The Hall gives 1 construction worker and a Carpenter's Workshop adds more. The fill rule is swappable.
+- [Migration from current code](tickets/10-migration-from-current-code.md): all once-per-day logic goes, one wallet, four resources, new building model with corner anchors, a change log, live sync built from `HealthKitResourceSync`. Old saves are wiped. The Hall is a paid scaffold, not free. Watch stays unused.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
-| [Migration from current code](tickets/10-migration-from-current-code.md) | grilling (HITL) | 03, 02 |
 | [Economy numbers](tickets/11-economy-numbers.md) | prototype (HITL) | none |
 
 ## Not yet specified

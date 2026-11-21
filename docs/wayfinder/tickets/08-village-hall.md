@@ -50,3 +50,5 @@ The Hall stops at level 5 in the first version.
 - `10`: effort bars need their own saved progress per source.
 
 **Update from ticket 12:** the Hall upgrade now runs on the shared effort rule. It has an effort target per source set directly in data and no resource cost, a worker count that speeds the fill, and the "!" tap to open. It no longer needs a separate mechanism. Carpentry joins the unlock list (level set in ticket 11).
+
+**Update from ticket 10:** the Village Hall is not free. The player starts with exactly the resources to place its scaffold, and maybe a first house. It follows ticket 12 like every build, with a larger effort target. Tracking starts when the Hall scaffold is placed. Before the Hall exists, the player has 1 person and a cap of 1 construction worker.

@@ -44,3 +44,5 @@ How does placement work with mixed footprints? Decide: grid size and growth, ove
 - `08`: grid start size and growth.
 - `10`: occupancy checks across a footprint, anchor and rotation on placed buildings, center-based coordinates, and the Village Hall rules.
 - New fog: screens and flows (see map).
+
+**Update from ticket 10:** a placed building stores its anchor as its corner (lowest column and row it covers). The grid itself is centered on cell (0, 0).
