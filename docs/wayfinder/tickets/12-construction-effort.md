@@ -35,7 +35,7 @@ Decide:
 **Workers.**
 - Each worker adds a flat amount of fill speed. Each extra worker adds less (a curve in data). With zero workers, nothing fills.
 - A scaffold has no worker limit of its own. All construction workers may sit on one build.
-- The limit is the total number of construction workers you can have, a number in data. It is a cap on people from the same pool as ticket 05, so putting people on construction means fewer on production.
+- The limit is the total number of construction workers you can have (see the update at the end: the Hall gives 1, the Workshop adds more). It is a cap on people from the same pool as ticket 05, so putting people on construction means fewer on production.
 - A new **Carpentry** building raises that total. It is a normal building in the catalog (footprint, cost, unlock level, upgrades). Its Hall level and numbers come from ticket 11. Added to the map's unlock list.
 - Worker moves go in the state log with a time (ticket 04). Fill uses the worker count at the time the exercise started.
 
@@ -58,3 +58,9 @@ Neither is built in the MVP. They are listed in ticket 11.
 - `11`: Carpentry numbers and unlock level, the worker curve, effort ratios, Hall effort targets, and play tests of the two swap ideas.
 - `10`: build state (scaffold, ready, open), bar progress per source, a worker cap, the "!" flow, and the swappable fill rule.
 - `08`: update the Hall to use this rule.
+
+## Update after closing: construction worker cap
+
+- The construction worker cap is set by buildings, not by a loose number. The Village Hall gives 1. A level 1 Carpentry building (working name below) adds a second. Upgrading it adds a third, and so on. All amounts are data.
+- A person is still needed for each construction worker, so the cap only matters if there are enough people (ticket 05). A cap of 3 with 2 people means 2 workers.
+- Name: "Carpenter's Workshop", short name "Workshop". Not final.

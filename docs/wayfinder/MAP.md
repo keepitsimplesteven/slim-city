@@ -30,7 +30,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [Gold, steps and the Bank](tickets/07-gold-and-bank.md): gold earns by the same formula. Source is steps, goal 10,000 fixed in data, base 1,000 (10 steps per gold). The Bank works like the other producers. No storage cap. Each resource has its own base, source and goal in data.
 - [Village Hall levels and unlocks](tickets/08-village-hall.md): the Hall is a normal building with 5 levels. Starter unlock list is data. Grid 8x8 plus a ring per level. A Hall upgrade needs one of each current-level building, no resource cost, and fills one effort bar per source. New game: only a free Hall, and nothing is tracked until it is placed.
 - [Stub contract](tickets/09-stub-contract.md): a stub is a normal building with no effects. Tapping opens a shared "coming soon" screen, or the real feature if one is registered under its `featureId`. Deleting a building erases its feature data. Switched-off hooks stay as named settings in data.
-- [Construction effort (scaffolding)](tickets/12-construction-effort.md): every build and upgrade is paid up front, then needs effort: one bar per cost resource, filled by the matching ring at base rates, times construction workers. Cancel refunds resources and loses effort. A finished build shows an "!" and opens when tapped. A Carpentry building raises the worker total. The fill rule is swappable.
+- [Construction effort (scaffolding)](tickets/12-construction-effort.md): every build and upgrade is paid up front, then needs effort: one bar per cost resource, filled by the matching ring at base rates, times construction workers. Cancel refunds resources and loses effort. A finished build shows an "!" and opens when tapped. The Hall gives 1 construction worker and a Carpenter's Workshop adds more. The fill rule is swappable.
 
 ## Open tickets (index only; detail lives in each file)
 
@@ -49,7 +49,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - Switch-on points for hooks: food penalty (turns on after play tests, ticket 11), neighbor bonuses (when a neighbor ticket is charted), typed-in entry filter (when anti-cheat is built).
 - Neighbor bonuses: a building that boosts nearby ones, or bonuses for touching groups. Reserved slot only, not MVP.
 - Gold exchange: buying other resources with gold at a steep price, possibly a building with upgrades. Hangs on Economy numbers.
-- Carpentry unlock level and numbers. Hangs on Economy numbers.
+- Carpenter's Workshop unlock level and numbers. Hangs on Economy numbers.
 - Art: 4 build stages per building and upgrade (25, 50, 75, 100%). Hangs on Grid and footprints.
 - Art: Kenney assets at a 2x2 sub-grid per tile. Hangs on Grid and footprints.
 - Mission board content. Hangs on Stub contract.

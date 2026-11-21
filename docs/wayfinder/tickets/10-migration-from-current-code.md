@@ -2,7 +2,7 @@
 type: grilling
 status: open
 blocked-by: [02, 03]
-claimed:
+claimed: steven
 ---
 
 # Migration from current code
