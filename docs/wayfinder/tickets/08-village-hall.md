@@ -48,3 +48,5 @@ The Hall stops at level 5 in the first version.
 - `02`: an upgrade can require specific buildings and can have effort bars instead of a resource cost.
 - `09`: Mission board unlocks at level 3, Marketplace at 4, Records at 5.
 - `10`: effort bars need their own saved progress per source.
+
+**Update from ticket 12:** the Hall upgrade now runs on the shared effort rule. It has an effort target per source set directly in data and no resource cost, a worker count that speeds the fill, and the "!" tap to open. It no longer needs a separate mechanism. Carpentry joins the unlock list (level set in ticket 11).

@@ -72,3 +72,5 @@ Worked example. Farm A is level 1: +10 food, x1.1 per person, 1 person placed. F
 **Update from ticket 08:** an upgrade node can require specific buildings to be owned, and can have effort bars (one target per source) instead of, or as well as, a resource cost. Ticket 12 decides how far effort bars reach.
 
 **Update from ticket 09:** a building definition may name a `featureId`. Feature data is stored apart from the city and is erased when its building is deleted.
+
+**Update from ticket 12:** every building and upgrade has an effort target per source (default: cost times a ratio, or set directly), and 4 visual stages. A placed building has a state: scaffold, ready, or open, with bar progress per source. Carpentry is a new catalog building that raises the construction worker total.
