@@ -45,3 +45,7 @@ Each building has its own worker capacity, which upgrades can raise. A "per pers
 **Passed on:**
 - `11`: starting people, food rate, grace rule, house numbers.
 - `10`: state log entries for people, the midnight food step, the shortage hook.
+
+## Amended by ticket 15
+
+Food is eaten at regular intervals through the day, not once at midnight. The interval is data. Daily total is unchanged. Shortage warning and grace day stay. Ticket 11 sets the interval.
