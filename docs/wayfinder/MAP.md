@@ -9,6 +9,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 ## Notes
 
 - Raw brainstorm, verbatim: [NOTES.md](NOTES.md). Never edit it. Quote it from tickets.
+- The user wants strong hands-on control of final look and feel. Specs describe slots and behavior, not styling. Styling is decided by prototype (ticket 14).
 - Rule for every ticket: buildings, costs, upgrades, caps, rates, resource-to-ring links, and delays are **data, not code**. Easy to tweak during development.
 - Stable, leave alone: HealthKit integration, camera controls (pan/zoom). Everything else is a draft and may change when a closed ticket says so, including the frozen APIs in `.kiro/steering/slim-city-constraints.md`.
 - Skills for HITL tickets: `grilling`, `domain-modeling`. Research tickets: `research`. Prototype tickets: `prototype`.
@@ -33,16 +34,16 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [Construction effort (scaffolding)](tickets/12-construction-effort.md): every build and upgrade is paid up front, then needs effort: one bar per cost resource, filled by the matching ring at base rates, times construction workers. Cancel refunds resources and loses effort. A finished build shows an "!" and opens when tapped. The Hall gives 1 construction worker and a Carpenter's Workshop adds more. The fill rule is swappable.
 - [Migration from current code](tickets/10-migration-from-current-code.md): all once-per-day logic goes, one wallet, four resources, new building model with corner anchors, a change log, live sync built from `HealthKitResourceSync`. Old saves are wiped. The Hall is a paid scaffold, not free. Watch stays unused.
 - [Kenney asset inventory](tickets/19-kenney-inventory.md): four CC0 3D packs, no USDZ in them. House exists, Marketplace fits best, others need pieces made or composed. Build stages are possible with towers, a Mini Forest hut and partial builds. Repo has an OBJ-to-USDZ route.
+- [Screen inventory and navigation](tickets/13-screen-inventory.md): the city is home, everything else is a sheet or drawer, behind a router so full-screen views can come later. Header has resources and people. Footer has Build and Edit. Buildings show several badges and always-on progress rings. A build carousel, one building sheet with an Edit button, a dialog box and a bottom drawer. Look and feel is left to ticket 14.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
 | [Economy numbers](tickets/11-economy-numbers.md) | prototype (HITL) | none |
-| [Screen inventory and navigation](tickets/13-screen-inventory.md) | grilling (HITL) | none |
-| [Build list, building card and construction UI](tickets/14-build-and-card-ui.md) | prototype (HITL) | 13 |
-| [HUD and live feedback](tickets/15-hud-and-feedback.md) | grilling (HITL) | 13 |
-| [First run and permissions](tickets/16-first-run-and-permissions.md) | grilling (HITL) | 13 |
+| [Build list, building card and construction UI](tickets/14-build-and-card-ui.md) | prototype (HITL) | none |
+| [HUD and live feedback](tickets/15-hud-and-feedback.md) | grilling (HITL) | none |
+| [First run and permissions](tickets/16-first-run-and-permissions.md) | grilling (HITL) | none |
 | [Guidance and empty states](tickets/17-guidance-and-empty-states.md) | grilling (HITL) | 15, 16 |
 | [Art plan: build stages and Kenney pieces](tickets/18-art-plan.md) | grilling (HITL) | none |
 
@@ -52,6 +53,7 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - The chase: what happens when everything is built. Perfect weeks, perfect year, special buildings. Hangs on Economy numbers.
 - Medals: HealthKit cannot read watch badges (confirmed), so they must be built in. Rewards are out of scope for now.
 - Switch-on points for hooks: food penalty (turns on after play tests, ticket 11), neighbor bonuses (when a neighbor ticket is charted), typed-in entry filter (when anti-cheat is built).
+- Other people's towns view: a full-screen mode reached from the city. Needs networking. Out of the MVP but the router must allow it.
 - Neighbor bonuses: a building that boosts nearby ones, or bonuses for touching groups. Reserved slot only, not MVP.
 - Gold exchange: buying other resources with gold at a steep price, possibly a building with upgrades. Hangs on Economy numbers.
 - Carpenter's Workshop unlock level and numbers. Hangs on Economy numbers.

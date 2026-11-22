@@ -87,3 +87,7 @@ Needs: build state (scaffold, ready, open), effort bars per source, a constructi
 **Tests.** Existing tests for claim, ledger, wallet modes and the 1x1 grid get rewritten with the code they cover.
 
 **Suggested slices for the task list:** (1) resources and data tables, (2) buildings, placement and footprints, (3) effects and live earning, (4) state log and time source, (5) construction, (6) persistence, (7) app wiring and debug, (8) HealthKit reads, (9) screens and drawing.
+
+## Added by ticket 13
+
+Needs: a small screen router, a badge system on buildings, a dialog element, a bottom drawer element, a header with people, a build carousel, and one building sheet with state bodies.
