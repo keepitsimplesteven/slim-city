@@ -1,8 +1,8 @@
 ---
 type: prototype
 status: open
-blocked-by: [03, 05, 07, 12]
-claimed:
+blocked-by: []
+claimed: steven
 ---
 
 # Economy numbers
