@@ -13,12 +13,12 @@ All numbers live in `data.json`. Output of round 1: `round1-output.txt`.
 - A scaffold placed at the start of a day gets that day's progress. A finished build opens at the start of the next day.
 
 ## Round 1 reading (normal player, 28 days)
-- The Hall bars are the gate. Most blocked days are "locked", waiting on the next Hall level. The Hall reaches level 4 around day 8 and level 5 is not reached by the economy plan.
+- The Hall bars are the gate. Most blocked days are "locked", waiting on the next Hall level. A normal player with the builder plan reaches Hall 2 on day 8, Hall 3 on day 16 and Hall 4 on day 26. Nobody reaches Hall 5 in 28 days.
 - Gold piles up: 25,000+ unspent at the end. Base 1,000 a day against costs of 300 to 900 makes gold close to free.
 - Wood, stone and food stay small next to gold. Wood is the only resource that ever blocks a placement.
 - Food bites hard for a light player. With 12 people eating 24 a day each, a half ring does not cover it, so 26 of 28 days are hungry.
 - A normal player is hungry on 16 days with the builder plan and 0 on the others. The builder plan has more houses than farms.
-- The cap never bites below the hard player. Extreme players are capped on all 28 days.
+- The cap never bites for light, normal or hard players. The extreme player (200%) is capped on all 28 days.
 - Idle construction workers are rare. People are the bottleneck only for the builder plan.
 
 ## Caveats
