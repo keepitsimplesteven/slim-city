@@ -36,13 +36,13 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [Kenney asset inventory](tickets/19-kenney-inventory.md): four CC0 3D packs, no USDZ in them. House exists, Marketplace fits best, others need pieces made or composed. Build stages are possible with towers, a Mini Forest hut and partial builds. Repo has an OBJ-to-USDZ route.
 - [Screen inventory and navigation](tickets/13-screen-inventory.md): the city is home, everything else is a sheet or drawer, behind a router so full-screen views can come later. Header has resources and people. Footer has Build and Edit. Buildings show several badges and always-on progress rings. A build carousel, one building sheet with an Edit button, a dialog box and a bottom drawer. Look and feel is left to ticket 14.
 - [HUD and live feedback](tickets/15-hud-and-feedback.md): resource popovers under the header, center modal for collected resources and day ledgers (with a minimal +N option), runner icon for sync age, separate badges on buildings, food red at 0, no banner, in-app alerts or notifications if away. Food is eaten at intervals.
+- [Build list, card and construction UI](tickets/14-build-and-card-ui.md): round 2 click prototype is the layout reference. Edit locks to one building with Rotate and Done. Scaffold panel shows rings and real-life work left, never effort. Upgrade is a menu in the building panel. Delete is a small icon in edit.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
 | [Economy numbers](tickets/11-economy-numbers.md) | prototype (HITL) | none |
-| [Build list, building card and construction UI](tickets/14-build-and-card-ui.md) | prototype (HITL) | none |
 | [First run and permissions](tickets/16-first-run-and-permissions.md) | grilling (HITL) | none |
 | [Guidance and empty states](tickets/17-guidance-and-empty-states.md) | grilling (HITL) | 16 |
 | [Art plan: build stages and Kenney pieces](tickets/18-art-plan.md) | grilling (HITL) | none |

@@ -1,6 +1,6 @@
 ---
 type: prototype
-status: open
+status: closed
 blocked-by: []
 claimed: steven
 ---
@@ -46,3 +46,19 @@ Prototype: [prototypes/14-round2.html](../prototypes/14-round2.html). Round 1 st
 - Rotate and confirm sit on the building: arrows on each side, check mark in the middle. No bottom bar.
 
 **Open for round 3:** where Delete lives during edit (small button in the footer now); how many builders a build may hold (3 in the prototype).
+
+## Resolution
+
+Closed after round 2. The user judged the prototype serviceable for now. Finer look and feel is iterated during the build, not by more prototype rounds.
+
+**Settled:**
+- Layout and flows as in [round 2](../prototypes/14-round2.html) are the reference for the spec. The spec describes slots and behavior, not styling.
+- Edit: one building at a time. Only the footprint highlight plus Rotate and Done show. Other buildings cannot be selected. Both entry points (footer Edit, Edit button on the building panel) stay.
+- Delete during edit: a small icon below the confirm control in 2D. In 3D it sits on the building with an extra confirm step (user wrote "double dare"; read as a double confirm, check when built).
+- Concentric watchOS-style rings: not pursued.
+- Effort is never shown. The scaffold panel shows rings and real-life work left per resource.
+- Upgrade menu inside the building panel. The full upgrade menu needs its own post-MVP ticket.
+
+**Passed on:**
+- Spec: 3D placement controls sit on the building (arrows on each side, check in the middle). "!" hovers above. Rings float on the building.
+- Post-MVP ticket: upgrade menu and choice upgrades.
