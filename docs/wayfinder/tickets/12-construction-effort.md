@@ -64,3 +64,7 @@ Neither is built in the MVP. They are listed in ticket 11.
 - The construction worker cap is set by buildings, not by a loose number. The Village Hall gives 1. A level 1 Carpentry building (working name below) adds a second. Upgrading it adds a third, and so on. All amounts are data.
 - A person is still needed for each construction worker, so the cap only matters if there are enough people (ticket 05). A cap of 3 with 2 people means 2 workers.
 - Name: "Carpenter's Workshop", short name "Workshop". Not final.
+
+## Amended by ticket 14 (round 2)
+
+Effort is not a visible metric. The player sees, per cost resource, "x of y gathered" and the real-life work left. A builder assembles at 2x the gathering rate (data). Worker count changes the time left.

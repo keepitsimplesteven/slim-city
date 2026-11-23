@@ -51,3 +51,7 @@ Unlock lock badge: dropped. A locked building cannot be placed, so none exists o
 - `11`: food interval length.
 - `14`: look of the popover, modal, runner icon, badges (user reacts to the prototype).
 - `16`: notification permission wording.
+
+## Amended by ticket 14 (round 2)
+
+The day ledger is dropped. The one "collected" modal shows resources gained, food eaten, daily max reached (gold text), and time since last collected. People use a popover under the header, not a drawer. Build bars are not shown in the modal.
