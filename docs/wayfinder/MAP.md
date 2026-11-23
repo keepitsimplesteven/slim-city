@@ -39,12 +39,12 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [Build list, card and construction UI](tickets/14-build-and-card-ui.md): round 2 click prototype is the layout reference. Edit locks to one building with Rotate and Done. Scaffold panel shows rings and real-life work left, never effort. Upgrade is a menu in the building panel. Delete is a small icon in edit.
 - [First run and permissions](tickets/16-first-run-and-permissions.md): one read-only intro screen, then the Health ask. No Health access means the game is blocked. Tracking starts at the Hall, but today pays retroactively. The whole first run is data, so it is easy to change. Notifications asked once after the first scaffold.
 - [Guidance and empty states](tickets/17-guidance-and-empty-states.md): five one-time hints in the dialog box, each ended by "Got it", plus "Don't show tips". A small Settings sheet holds the tips switch. Four one-line empty states. Characters, story and a help screen are cut. Prototype: prototypes/17-hints.html.
+- [Economy numbers](tickets/11-economy-numbers.md): throwaway Python sim with one JSON data file (`prototypes/11-economy/`). Starting numbers accepted as a first pass. Hall is the gate, food stops light players, gold piles up. Tuning continues in play tests.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
-| [Economy numbers](tickets/11-economy-numbers.md) | prototype (HITL) | none |
 | [Art plan: build stages and Kenney pieces](tickets/18-art-plan.md) | grilling (HITL) | none |
 
 ## Not yet specified
