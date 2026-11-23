@@ -2,7 +2,7 @@
 type: grilling
 status: open
 blocked-by: []
-claimed:
+claimed: steven
 ---
 
 # Guidance and empty states
