@@ -1,0 +1,17 @@
+days 28, seeds 30, cap 1.5, overflow False, food rescue True
+
+player   plan     hall2 day hall3 day hall4 day ppl   hungry rescue capD  end wallet f/w/s/g       top waits
+perfect  builder   7.0(1)   18.0(1)   -         12    0      9      0     266/736/389/2490         no-builder:83, hall-busy:33, locked:18
+perfect  economy   7.0(1)   16.0(1)   25.0(1)   10    0      0      0     1737/573/336/2490        no-builder:98, hall-busy:27, locked:27
+perfect  hoarder   7.0(1)   15.0(1)   28.0(1)   7     0      0      0     504/832/354/2680         no-builder:85, hall-busy:54, hall-not-open:5
+light    builder  20.3(12)  -         -         5     7      19     0     64/317/170/1287          no-builder:89, hall-busy:16, prereq:house:9
+light    economy  18.2(21)  -         -         5     5      14     0     154/273/166/1260         no-builder:137, hall-busy:18, prereq:house:14
+light    hoarder  20.3(12)  -         -         4     7      19     0     82/321/170/1302          no-builder:55, hall-busy:17, prereq:house:9
+normal   builder   8.1(30)  20.1(30)  27.7(3)   12    1      8      3     404/720/372/2492         no-builder:94, hall-busy:38, locked:19
+normal   economy   8.4(30)  18.2(30)  27.7(19)  10    0      0      3     1959/591/338/2521        no-builder:110, hall-busy:32, locked:31
+normal   hoarder   8.1(30)  18.0(30)  -         6     0      0      3     836/840/352/2769         no-builder:91, hall-busy:57, prereq:mill,quarry:5
+hard     builder   7.0(30)  14.0(30)  22.8(30)  13    0      4      57    558/1122/576/3538        no-builder:82, hall-busy:37, locked:18
+hard     economy   7.0(30)  15.0(30)  22.6(30)  10    0      0      57    4161/981/481/3666        no-builder:97, hall-busy:23, locked:21
+hard     hoarder   7.0(30)  14.0(30)  24.3(30)  7     0      0      57    1951/1219/490/3788       no-builder:76, hall-busy:48, hall-not-open:5
+
+(n) = seeds that reached it. Waits are average days per run.

@@ -1,0 +1,130 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slim City ticket 14 prototype, round 2 (throwaway)</title>
+<style>
+:root{--bg:#3B9C74;--cell:#4EB583;--panel:#1f2a33;--ink:#f3f5f7;--mute:#9fb0bd;--accent:#ffd24a;--bad:#ff5a5a;--ok:#6fe39a;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#111;font:14px system-ui;color:var(--ink);display:flex;justify-content:center}
+#app{position:relative;width:390px;height:780px;background:var(--bg);overflow:hidden;margin:10px;border-radius:28px;box-shadow:0 0 0 8px #000}
+#hdr{position:absolute;top:0;left:0;right:0;padding:34px 8px 8px;display:flex;gap:6px;background:linear-gradient(#0008,#0000);z-index:5}
+.res{position:relative;flex:1;background:var(--panel);border-radius:10px;padding:5px 6px;text-align:center;cursor:pointer;font-weight:600}
+.res small{display:block;color:var(--mute);font-weight:400;font-size:10px}
+.res.cap b{color:var(--accent)} .res.neg b{color:var(--bad)}
+#sync{width:34px;background:var(--panel);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.45}
+#sync.fresh{opacity:1;font-weight:900}
+.pop{position:absolute;top:100%;left:0;margin-top:6px;width:200px;background:var(--panel);border:1px solid #fff3;border-radius:12px;padding:10px;text-align:left;font-weight:400;z-index:20;box-shadow:0 8px 20px #0008}
+.bar{height:8px;background:#0006;border-radius:4px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;background:var(--ok)}
+#city{position:absolute;inset:100px 10px 110px;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);gap:2px}
+.c{background:var(--cell);border-radius:3px;position:relative}
+.c.g{background:#4ee08a}.c.r{background:#ff6b6b}
+.b{position:relative;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid #0004;z-index:2;cursor:pointer}
+.b.scaf{opacity:.65;border-style:dashed}.b.sel{outline:3px solid var(--accent)}
+.badges{position:absolute;top:-10px;right:-6px;display:flex;gap:2px;z-index:6}
+.badge{background:var(--panel);border:1px solid #fff5;border-radius:10px;font-size:11px;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.badge.bang{background:var(--accent);color:#000;font-weight:900;animation:p 1s infinite alternate}
+@keyframes p{to{transform:scale(1.2)}}
+.rings{position:absolute;left:2px;bottom:2px;display:flex;gap:2px}
+.ring{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle,#0000 0 46%,#000 47% 49%,#0000 50%),conic-gradient(var(--c) calc(var(--p)*1%),#0007 0)}
+.bigring{width:44px;height:44px;border-radius:50%;flex:none;background:radial-gradient(circle,var(--panel) 0 52%,#0000 54%),conic-gradient(var(--c) calc(var(--p)*1%),#0007 0)}
+.heads{position:absolute;right:2px;bottom:1px;font-size:11px;letter-spacing:-2px}
+.gold{color:var(--accent)}
+#ftr{position:absolute;bottom:0;left:0;right:0;height:100px;padding:10px;display:flex;gap:10px;justify-content:center;align-items:flex-start;background:linear-gradient(#0000,#000a);z-index:5}
+.btn{background:var(--panel);color:var(--ink);border:0;border-radius:var(--r);padding:12px 22px;font:600 15px system-ui;cursor:pointer}
+.btn.on{background:var(--accent);color:#000}.btn.p{background:var(--ok);color:#000}.btn.d{background:#7a2b2b}
+#dbg{position:absolute;right:10px;bottom:70px;width:34px;height:34px;border-radius:50%;background:#7a2b2b;border:0;color:#fff;z-index:6}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-radius:20px 20px 0 0;padding:14px;z-index:30;transform:translateY(105%);transition:transform .25s;max-height:62%;overflow:auto}
+.sheet.open{transform:none}
+.carousel{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.card{flex:0 0 118px;background:#0004;border-radius:12px;padding:8px;font-size:12px;position:relative;cursor:pointer}
+.card.lock{opacity:.5}.card .ic{font-size:26px}
+.row{display:flex;align-items:center;gap:8px;margin:6px 0}.row .bar{flex:1;margin:0}
+.pm{width:28px;height:28px;border-radius:50%;border:0;background:#fff2;color:var(--ink);font-size:18px}
+#modal{position:absolute;inset:0;background:#000a;z-index:50;display:none;align-items:center;justify-content:center}
+#modal>div{background:var(--panel);border-radius:18px;padding:18px;width:300px}
+#dlg{position:absolute;left:10px;right:10px;bottom:120px;background:var(--panel);border-radius:14px;padding:12px;z-index:40;display:none;gap:10px}
+#tools{position:absolute;top:100px;left:10px;z-index:8;display:flex;flex-direction:column;gap:4px}
+#tools button{font-size:10px;padding:3px 6px;border-radius:6px;border:0;background:#000a;color:#fff}
+.hint{position:absolute;left:0;right:0;top:92px;text-align:center;z-index:7;font-size:12px;text-shadow:0 1px 3px #000}
+h3{margin:0 0 8px}
+</style></head><body><div id="app">
+<div id="hdr"></div><div class="hint" id="hint"></div>
+<div id="tools">
+ <button onclick="T.edit=!T.edit;render()">toggle: Edit in sheet</button>
+ <button onclick="T.foot=!T.foot;render()">toggle: footer Edit</button>
+ <button onclick="showModal()">modal: collected</button>
+ <button onclick="toast('+12 food')">minimal +12</button>
+ <button onclick="dlg()">dialog box</button>
+ <button onclick="drawer()">bottom drawer</button>
+ <button onclick="S.food=S.food>0?0:40;render()">food 0 / 40</button>
+ <button onclick="S.gcap=!S.gcap;render()">gold cap on/off</button>
+</div>
+<div id="city"></div>
+<button id="dbg" onclick="drawer('Debug','Add resources, reset, fake feed')">D</button>
+<div id="ftr"></div>
+<div id="dlg"><div style="font-size:30px">🧑‍🌾</div><div style="flex:1">Welcome, mayor. Go and move your body, then come back. <div style="color:var(--mute);font-size:11px;margin-top:6px" onclick="this.parentNode.parentNode.style.display='none'">tap to continue</div></div></div>
+<div class="sheet" id="sheet"></div>
+<div id="modal" onclick="if(event.target===this)this.style.display='none'"><div id="mbody"></div></div>
+</div>
+<script>
+const CAT={house:{n:'House',i:'🏠',w:2,h:2,c:{wood:50,gold:500},lv:1},farm:{n:'Farm',i:'🌾',w:3,h:3,c:{wood:80,gold:300},lv:1},mill:{n:'Lumber mill',i:'🪵',w:2,h:3,c:{wood:120,stone:40},lv:2},quarry:{n:'Quarry',i:'⛏️',w:4,h:2,c:{wood:150,stone:60},lv:2},board:{n:'Mission board',i:'📋',w:2,h:2,c:{wood:100},lv:3},market:{n:'Marketplace',i:'🏪',w:3,h:3,c:{wood:200,gold:900},lv:4},hall:{n:'Village Hall',i:'🏛️',w:3,h:3,c:{},lv:0}};
+const COL={food:'#ff9a4a',wood:'#c98a4a',stone:'#aab4be',gold:'#ffd24a'},IC={food:'🍎',wood:'🪵',stone:'🪨',gold:'🪙'};
+/* real-life unit per resource; per = resource gained per unit at base rate */
+const U={wood:{u:'exercise min',per:100/30},stone:{u:'stand hr',per:100/12},food:{u:'move kcal',per:100/500},gold:{u:'steps',per:0.1}};
+const ASSEMBLE=2;const f=n=>n<=0?0:[0,1,1.5,1.8][Math.min(n,3)];
+const S={food:40,wood:210,stone:30,gold:1200,people:8,max:10,hall:1,gcap:false};
+const T={edit:true,foot:true};
+let B=[{id:1,t:'hall',x:2,y:2,w:3,h:3,st:'open',wk:0},{id:2,t:'farm',x:0,y:5,w:3,h:3,st:'ready',wk:2},{id:3,t:'house',x:6,y:1,w:2,h:2,st:'scaf',p:{wood:{got:26,need:50},gold:{got:300,need:500}},wk:1}];
+let place=null,sel=null,editMode=false,pop=null,id=10;
+const $=s=>document.querySelector(s);
+function render(){
+ const res=r=>`<div class="res ${r=='food'&&S.food<=0?'neg':''} ${r=='gold'&&S.gcap?'cap':''}" onclick="popup('${r}',event)"><small>${IC[r]}</small><b>${S[r]}</b>${pop==r?popHtml(r):''}</div>`;
+ $('#hdr').innerHTML=['food','wood','stone','gold'].map(res).join('')+`<div class="res" onclick="popup('people',event)"><small>🧍</small><b>${S.people}/${S.max}</b>${pop=='people'?'<div class="pop" style="right:-40px;left:auto">Consumes 13 food / hour<br>Free: 2 (1 food / hour)<br>Working: 6 (12 food / hour)</div>':''}</div><div id="sync" class="fresh" onclick="popup('sync',event)">🏃${pop=='sync'?'<div class="pop" style="right:0;left:auto">Last synced 12 min ago</div>':''}</div>`;
+ const c=$('#city');c.innerHTML='';
+ for(let y=0;y<8;y++)for(let x=0;x<8;x++){const d=document.createElement('div');d.className='c';d.style.gridColumn=x+1;d.style.gridRow=y+1;d.onclick=()=>cell(x,y);d.id=`c${x}_${y}`;c.appendChild(d)}
+ B.forEach(b=>{const d=document.createElement('div');d.className='b'+(b.st=='scaf'?' scaf':'')+(sel==b.id?' sel':'');d.style.cssText=`grid-column:${b.x+1}/span ${b.w};grid-row:${b.y+1}/span ${b.h};background:${b.st=='scaf'?'#8a7a5a':'#a67c52'};${place&&place.id==b.id?'opacity:.3':''}`;
+  d.innerHTML=CAT[b.t].i+badges(b);d.onclick=e=>{e.stopPropagation();tapB(b)};c.appendChild(d)});
+ if(place)prev();
+ const placing=place&&!place.id;
+ $('#ftr').innerHTML=place?(placing?`<button class="btn" onclick="rot()">⟳ Rotate</button><button class="btn p" onclick="ok()">✓ Confirm</button><button class="btn d" onclick="place=null;render()">Cancel</button>`:`<button class="btn" onclick="rot()">⟳ Rotate</button><button class="btn p" onclick="ok()">✓ Done</button>${place.t!='hall'?'<button class="btn d" onclick="delb()">🗑</button>':''}`):`<button class="btn" onclick="openBuild()">🔨 Build</button>`+(T.foot?`<button class="btn ${editMode?'on':''}" onclick="editMode=!editMode;sel=null;render()">✏️ Edit</button>`:'');
+ $('#hint').textContent=place?(placing?'Tap a cell to move the preview':'Editing: tap a cell to move. Other buildings are locked.'):editMode?'Edit mode: tap a building to edit it':'';
+}
+function badges(b){let a=[],r='';
+ if(b.st=='ready')a.push('<span class="badge bang">!</span>');
+ if(b.st=='scaf'){r='<div class="rings">'+Object.entries(b.p).map(([q,v])=>`<i class="ring" style="--c:${COL[q]};--p:${100*v.got/v.need}"></i>`).join('')+'</div>';if(!b.wk)a.push('<span class="badge">👷?</span>')}
+ if(b.t=='house'&&S.food<=0)a.push('<span class="badge">🍎</span>');
+ const heads=b.wk?`<div class="heads">${'👤'.repeat(b.wk)}</div>`:'';
+ return `<div class="badges">${a.join('')}</div>${r}${heads}`}
+function popHtml(r){const g=r=='gold'&&S.gcap;return `<div class="pop"><b class="${g?'gold':''}">${g?'Daily max reached':'93 collected today'}</b><div class="bar"><i style="width:${g?100:62}%"></i></div>${g?'0% remaining':'38% remaining'}</div>`}
+function popup(r,e){e.stopPropagation();pop=pop==r?null:r;render()}
+document.addEventListener('click',()=>{if(pop){pop=null;render()}});
+function sheet(h){const s=$('#sheet');s.innerHTML=h;s.classList.add('open')}
+function closeSheet(){$('#sheet').classList.remove('open');if(place&&!place.id)place=null;render()}
+function openBuild(){sheet(`<h3>Build <span style="float:right" onclick="closeSheet()">✕</span></h3><div class="carousel">`+Object.entries(CAT).filter(([k])=>k!='hall').map(([k,v])=>{const l=v.lv>S.hall;return `<div class="card ${l?'lock':''}" onclick="${l?`toast('Needs Village Hall level ${v.lv}')`:`start('${k}')`}"><div class="ic">${v.i}</div><b>${v.n}</b><br>${v.w}x${v.h}<br>${Object.entries(v.c).map(([r,n])=>IC[r]+n).join(' ')}${l?`<br>🔒 Hall ${v.lv}`:''}</div>`}).join('')+`</div><div style="color:var(--mute);font-size:11px">Later: expand to a full grid of all buildings.</div>`)}
+function start(k){closeSheet();place={t:k,w:CAT[k].w,h:CAT[k].h,x:3,y:0};render()}
+function cell(x,y){if(place){place.x=Math.min(x,8-place.w);place.y=Math.min(y,8-place.h);render()}}
+function bad(p,ig){return p.x<0||p.y<0||p.x+p.w>8||p.y+p.h>8||B.some(b=>b.id!=ig&&b.x<p.x+p.w&&p.x<b.x+b.w&&b.y<p.y+p.h&&p.y<b.y+b.h)}
+function prev(){const e=bad(place,place.id);for(let i=0;i<place.w;i++)for(let j=0;j<place.h;j++){const c=$(`#c${place.x+i}_${place.y+j}`);if(c)c.classList.add(e?'r':'g')}}
+function rot(){[place.w,place.h]=[place.h,place.w];place.x=Math.min(place.x,8-place.w);place.y=Math.min(place.y,8-place.h);render()}
+function ok(){if(bad(place,place.id))return toast('Blocked');if(place.id){Object.assign(B.find(b=>b.id==place.id),{x:place.x,y:place.y,w:place.w,h:place.h})}else{const c=CAT[place.t];B.push({id:++id,t:place.t,x:place.x,y:place.y,w:place.w,h:place.h,st:'scaf',p:Object.fromEntries(Object.entries(c.c).map(([k,n])=>[k,{got:0,need:n}])),wk:0})}place=null;sel=null;editMode=false;render()}
+function tapB(b){if(place)return;if(editMode)return startEdit(b);sel=b.id;bsheet(b)}
+function startEdit(b){$('#sheet').classList.remove('open');sel=b.id;place={...b};render()}
+function togo(r,v,wk){const rate=U[r].per*ASSEMBLE*f(wk);return rate?Math.ceil((v.need-v.got)/rate):null}
+function bsheet(b){const c=CAT[b.t];let body='';
+ if(b.st=='scaf')body=Object.entries(b.p).map(([r,v])=>{const t=togo(r,v,b.wk);return `<div class="row"><i class="bigring" style="--c:${COL[r]};--p:${100*v.got/v.need}"></i><div>${IC[r]} ${v.got} of ${v.need} ${r}<br><span style="color:var(--mute)">${t===null?'Needs a worker':t+' '+U[r].u+' to go'}</span></div></div>`}).join('')+`<div class="row">👷 Workers <button class="pm" onclick="wk(${b.id},-1)">−</button>${b.wk}/3<button class="pm" onclick="wk(${b.id},1)">+</button></div><button class="btn d" onclick="warn(${b.id})">Cancel build</button>`;
+ else if(b.st=='ready')body=`<p>Finished. Tap to cut the ribbon.</p><button class="btn p" onclick="B.find(x=>x.id==${b.id}).st='open';closeSheet();toast('Opened!')">✂️ Open building</button>`;
+ else if(['board','market'].includes(b.t))body=`<p>Coming soon.</p>`;
+ else body=`<div class="row">+10 ${b.t=='farm'?'food':''} · x1.1 per worker</div><div class="row">👷 Workers <button class="pm">−</button>${b.wk}/3<button class="pm">+</button></div>`;
+ const acts=b.st=='open'&&!['board','market'].includes(b.t)?`<div style="margin-top:10px;display:flex;gap:8px"><button class="btn" onclick="bedit(${b.id})">✏️ Edit</button>${b.t!='hall'?`<button class="btn" onclick="upg(${b.id})">⬆️ Upgrade</button>`:''}</div>`:(b.st=='scaf'?'':`<div style="margin-top:10px"><button class="btn" onclick="bedit(${b.id})">✏️ Edit</button></div>`);
+ sheet(`<h3>${c.i} ${c.n} <span style="float:right" onclick="closeSheet()">✕</span></h3>`+body+acts)}
+function bedit(i){startEdit(B.find(x=>x.id==i))}
+function upg(i){const b=B.find(x=>x.id==i);const o=b.t=='farm'?[['Wagons','Each worker produces more (x mult)'],['Granary','Higher daily yield (+ mult)']]:[['Option A','Each worker produces more'],['Option B','Higher daily yield']];
+ sheet(`<h3>⬆️ Upgrade ${CAT[b.t].n} <span style="float:right" onclick="closeSheet()">✕</span></h3>`+o.map(x=>`<div class="card" style="margin-bottom:8px;flex:none" onclick="toast('${x[0]} scaffold placed')"><b>${x[0]}</b><br>${x[1]}<br>🪵80 🪙200</div>`).join('')+`<button class="btn" onclick="bsheet(B.find(x=>x.id==${i}))">Back</button>`)}
+function wk(i,d){const b=B.find(x=>x.id==i);b.wk=Math.max(0,Math.min(3,b.wk+d));render();bsheet(b)}
+function warn(i){sheet(`<h3>Cancel build?</h3><p>You get the resources back. The gathering you did is lost, and you must gather again next time.</p><button class="btn d" onclick="B=B.filter(x=>x.id!=${i});closeSheet()">Yes, cancel</button> <button class="btn" onclick="closeSheet()">Keep building</button>`)}
+function delb(){sheet(`<h3>Delete?</h3><p>You get every resource back, including upgrades. Gathering progress is lost.</p><button class="btn d" onclick="B=B.filter(x=>x.id!=place.id);place=null;sel=null;editMode=false;closeSheet()">Delete</button> <button class="btn" onclick="closeSheet()">Keep</button>`)}
+function showModal(){$('#modal').style.display='flex';$('#mbody').innerHTML=`<h3>Collected</h3><div style="color:var(--mute);margin-bottom:8px">Since you last collected: 3 h 20 min</div><div class="row">🍎 +34</div><div class="row">🪵 +21</div><div class="row">🪨 +8</div><div class="row gold">🪙 +640 <small>daily max reached</small></div><div class="row" style="color:var(--bad)">🍎 −40 eaten</div><button class="btn p" style="width:100%" onclick="$('#modal').style.display='none'">Collect</button>`}
+function dlg(){$('#dlg').style.display='flex'}
+function drawer(t,x){sheet(`<h3>${t||'Drawer'} <span style="float:right" onclick="closeSheet()">✕</span></h3><p>${x||'Catch-all for anything not planned yet. Rises to about half or two thirds of the screen.'}</p>`)}
+function toast(m){const t=document.createElement('div');t.textContent=m;t.style.cssText='position:absolute;top:110px;left:50%;transform:translateX(-50%);background:#000c;padding:8px 14px;border-radius:20px;z-index:99;transition:all 1.4s';$('#app').appendChild(t);setTimeout(()=>{t.style.top='80px';t.style.opacity=0},50);setTimeout(()=>t.remove(),1500)}
+render();
+</script></body></html>

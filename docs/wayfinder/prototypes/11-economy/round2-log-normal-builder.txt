@@ -1,0 +1,212 @@
+== day 1
+   + start build hall pay w15 g50 | bars w15 g50
+   people 1: construct 1, free 0 | workers: none on buildings
+   rings: move 132% exercise 136% stand 101% steps 80%
+   earned: food +132.2 wood +40.9 stone +12.2 gold +80.9
+   scaffold build hall             workers 1  w 100% g 100%  READY
+   ate 24 food | stock food 108 wood 55 stone 12 gold 130
+== day 2
+   * opened build hall | people now 2
+   + start build house pay w15 g50 | bars w15 g50
+   people 2: construct 1, free 1 | workers: none on buildings
+   rings: move 72% exercise 100% stand 74% steps 64%
+   earned: food +72.7 wood +30.2 stone +8.9 gold +64.1
+   scaffold build house            workers 1  w 100% g 100%  READY
+   ate 48 food | stock food 132 wood 71 stone 21 gold 144
+== day 3
+   * opened build house | people now 4
+   + start build farm pay w24 g30 | bars w24 g30
+   people 4: construct 1, free 3 | workers: none on buildings
+   rings: move 104% exercise 103% stand 113% steps 77%
+   earned: food +105.0 wood +31.0 stone +13.6 gold +77.2
+   scaffold build farm             workers 1  w 100% g 100%  READY
+   ate 96 food | stock food 141 wood 78 stone 34 gold 192
+== day 4
+   * opened build farm | people now 4
+   + start hall -> level 2 pay nothing | bars f600 w180 s72 g600
+   people 4: construct 1, free 0 | workers: farm3
+   rings: move 100% exercise 98% stand 62% steps 113%
+   earned: food +146.6 wood +29.5 stone +7.5 gold +113.4
+   scaffold hall -> level 2        workers 1  f 33% w 32% s 20% g 37%
+   ate 96 food | stock food 192 wood 107 stone 42 gold 305
+== day 5
+   people 4: construct 1, free 0 | workers: farm3
+   rings: move 108% exercise 159% stand 105% steps 96%
+   earned: food +158.1 wood +45.0 stone +12.6 gold +96.4
+   scaffold hall -> level 2        workers 1  f 69% w 82% s 55% g 69%
+   ate 96 food | stock food 254 wood 152 stone 54 gold 401
+== day 6
+   people 4: construct 1, free 0 | workers: farm3
+   rings: move 130% exercise 104% stand 122% steps 90%
+   earned: food +191.5 wood +31.5 stone +14.7 gold +90.9
+   scaffold hall -> level 2        workers 1  f 100% w 100% s 96% g 100%
+   ate 96 food | stock food 350 wood 184 stone 69 gold 492
+== day 7
+   people 4: construct 1, free 0 | workers: farm3
+   rings: move 105% exercise 125% stand 117% steps 103%
+   earned: food +154.4 wood +37.7 stone +14.1 gold +103.2
+   scaffold hall -> level 2        workers 1  f 100% w 100% s 100% g 100%  READY
+   ate 96 food | stock food 408 wood 221 stone 83 gold 596
+== day 8
+   * opened hall -> level 2 | people now 5
+   + start build house pay w15 g50 | bars w15 g50
+   people 5: construct 1, free 1 | workers: farm3
+   rings: move 72% exercise 111% stand 101% steps 118%
+   earned: food +106.8 wood +33.3 stone +12.2 gold +118.0
+   scaffold build house            workers 1  w 100% g 100%  READY
+   ate 120 food | stock food 395 wood 240 stone 95 gold 664
+== day 9
+   * opened build house | people now 7
+   + start build carpenter pay w36 s5 g40 | bars w36 s5 g40
+   people 7: construct 1, free 3 | workers: farm3
+   rings: move 105% exercise 127% stand 98% steps 105%
+   earned: food +154.3 wood +38.2 stone +11.8 gold +105.0
+   scaffold build carpenter        workers 1  w 100% s 100% g 100%  READY
+   ate 168 food | stock food 381 wood 242 stone 102 gold 729
+== day 10
+   * opened build carpenter | people now 7
+   + start build mill pay w36 s5 | bars w36 s5
+   + start build quarry pay w45 s7 | bars w45 s7
+   people 7: construct 2, free 2 | workers: farm3
+   rings: move 116% exercise 72% stand 89% steps 87%
+   earned: food +170.8 wood +21.8 stone +10.8 gold +87.5
+   scaffold build mill             workers 1  w 100% s 100%  READY
+   scaffold build quarry           workers 1  w 97% s 100%
+   ate 168 food | stock food 384 wood 183 stone 101 gold 816
+== day 11
+   * opened build mill | people now 7
+   + start build house pay w15 g50 | bars w15 g50
+   people 7: construct 2, free 0 | workers: farm3, mill2
+   rings: move 149% exercise 97% stand 116% steps 115%
+   earned: food +218.9 wood +39.0 stone +14.0 gold +115.5
+   scaffold build quarry           workers 1  w 100% s 100%  READY
+   scaffold build house            workers 1  w 100% g 100%  READY
+   ate 168 food | stock food 435 wood 207 stone 115 gold 882
+== day 12
+   * opened build quarry | people now 7
+   * opened build house | people now 9
+   + start hall -> level 3 pay nothing | bars f1200 w360 s144 g1200
+   + start build house pay w15 g50 | bars w15 g50
+   people 9: construct 2, free 0 | workers: farm3, mill3, quarry1
+   rings: move 92% exercise 61% stand 124% steps 89%
+   earned: food +136.1 wood +26.9 stone +18.4 gold +89.8
+   scaffold hall -> level 3        workers 1  f 15% w 10% s 20% g 14%
+   scaffold build house            workers 1  w 100% g 100%  READY
+   ate 216 food | stock food 355 wood 219 stone 133 gold 921
+== day 13
+   * opened build house | people now 11
+   people 11: construct 2, free 0 | workers: farm3, mill3, quarry3
+   rings: move 117% exercise 67% stand 89% steps 131%
+   earned: food +172.7 wood +29.6 stone +16.0 gold +131.4
+   scaffold hall -> level 3        workers 2  f 44% w 27% s 42% g 47%
+   ate 264 food | stock food 264 wood 248 stone 149 gold 1053
+== day 14
+   people 11: construct 2, free 0 | workers: farm3, mill3, quarry3
+   rings: move 135% exercise 67% stand 66% steps 98%
+   earned: food +198.8 wood +29.6 stone +12.0 gold +98.9
+   scaffold hall -> level 3        workers 2  f 78% w 43% s 59% g 72%
+   ate 264 food | stock food 199 wood 278 stone 161 gold 1152
+== day 15
+   ! food rescue: farms first, no new builds except farms
+   + start build farm (rescue) pay w24 g30 | bars w24 g30
+   people 11: construct 2, free 0 | workers: farm3, mill3, quarry3
+   rings: move 118% exercise 104% stand 107% steps 75%
+   earned: food +173.1 wood +45.7 stone +19.3 gold +75.3
+   scaffold hall -> level 3        workers 1  f 98% w 61% s 77% g 85%
+   scaffold build farm (rescue)    workers 1  w 100% g 100%  READY
+   ate 264 food | stock food 108 wood 299 stone 181 gold 1197
+== day 16
+   * opened build farm (rescue) | people now 11
+   ! food rescue: farms first, no new builds except farms
+   + start build farm (rescue) pay w24 g30 | bars w24 g30
+   people 11: construct 2, free 0 | workers: farm3, mill3, farm3
+   rings: move 114% exercise 127% stand 89% steps 64%
+   earned: food +243.8 wood +56.2 stone +12.0 gold +64.2
+   scaffold hall -> level 3        workers 1  f 100% w 82% s 92% g 95%
+   scaffold build farm (rescue)    workers 1  w 100% g 100%  READY
+   ate 264 food | stock food 87 wood 332 stone 193 gold 1231
+== day 17
+   * opened build farm (rescue) | people now 11
+   ! food rescue: farms first, no new builds except farms
+   + start build farm (rescue) pay w24 g30 | bars w24 g30
+   people 11: construct 2, free 0 | workers: farm3, farm3, farm3
+   rings: move 81% exercise 119% stand 56% steps 97%
+   earned: food +248.4 wood +39.3 stone +7.6 gold +97.7
+   scaffold hall -> level 3        workers 1  f 100% w 100% s 100% g 100%  READY
+   scaffold build farm (rescue)    workers 1  w 100% g 100%  READY
+   ate 264 food | stock food 72 wood 347 stone 200 gold 1299
+== day 18
+   * opened hall -> level 3 | people now 12
+   * opened build farm (rescue) | people now 12
+   ! food rescue: farms first, no new builds except farms
+   people 12: construct 0, free 0 | workers: farm3, farm3, farm3, farm3
+   rings: move 75% exercise 96% stand 93% steps 100%
+   earned: food +330.5 wood +31.9 stone +12.7 gold +100.4
+   ate 288 food | stock food 114 wood 379 stone 213 gold 1399
+== day 19
+   ! food rescue: farms first, no new builds except farms
+   people 12: construct 0, free 0 | workers: farm3, farm3, farm3, farm3
+   rings: move 137% exercise 110% stand 133% steps 96%
+   earned: food +604.3 wood +36.5 stone +18.0 gold +96.5
+   ate 288 food | stock food 431 wood 415 stone 231 gold 1496
+== day 20
+   + start build board pay w30 | bars w30
+   people 12: construct 2, free 0 | workers: farm3, mill3, quarry3, farm1
+   rings: move 88% exercise 109% stand 29% steps 99%
+   earned: food +180.4 wood +48.1 stone +5.2 gold +99.0
+   scaffold build board            workers 2  w 100%  READY
+   ate 288 food | stock food 323 wood 433 stone 236 gold 1595
+== day 21
+   * opened build board | people now 12
+   + start hall -> level 4 pay nothing | bars f2400 w720 s288 g2400
+   people 12: construct 2, free 0 | workers: farm3, mill3, quarry3, farm1
+   rings: move 104% exercise 69% stand 111% steps 86%
+   earned: food +213.2 wood +30.4 stone +20.1 gold +86.0
+   scaffold hall -> level 4        workers 2  f 13% w 8% s 13% g 10%
+   ate 288 food | stock food 248 wood 464 stone 256 gold 1681
+== day 22
+   ! food rescue: farms first, no new builds except farms
+   people 12: construct 0, free 0 | workers: farm3, farm3, farm3, farm3
+   rings: move 38% exercise 94% stand 75% steps 86%
+   earned: food +169.3 wood +31.2 stone +10.2 gold +87.0
+   scaffold hall -> level 4        workers 0  f 13% w 8% s 13% g 10%
+   ate 288 food | stock food 129 wood 495 stone 267 gold 1768
+== day 23
+   ! food rescue: farms first, no new builds except farms
+   people 12: construct 0, free 0 | workers: farm3, farm3, farm3, farm3
+   rings: move 96% exercise 131% stand 102% steps 99%
+   earned: food +422.7 wood +43.3 stone +13.8 gold +99.3
+   scaffold hall -> level 4        workers 0  f 13% w 8% s 13% g 10%
+   ate 288 food | stock food 264 wood 538 stone 280 gold 1867
+== day 24
+   ! food rescue: farms first, no new builds except farms
+   people 12: construct 0, free 0 | workers: farm3, farm3, farm3, farm3
+   rings: move 109% exercise 54% stand 131% steps 73%
+   earned: food +482.1 wood +18.1 stone +17.7 gold +73.1
+   scaffold hall -> level 4        workers 0  f 13% w 8% s 13% g 10%
+   ate 288 food | stock food 458 wood 556 stone 298 gold 1940
+== day 25
+   people 12: construct 2, free 0 | workers: farm3, mill3, quarry3, farm1
+   rings: move 110% exercise 71% stand 75% steps 90%
+   earned: food +227.5 wood +31.6 stone +13.6 gold +90.1
+   scaffold hall -> level 4        workers 2  f 26% w 17% s 23% g 22%
+   ate 288 food | stock food 398 wood 588 stone 312 gold 2030
+== day 26
+   people 12: construct 2, free 0 | workers: farm3, mill3, quarry3, farm1
+   rings: move 147% exercise 117% stand 84% steps 92%
+   earned: food +302.1 wood +51.6 stone +15.3 gold +92.9
+   scaffold hall -> level 4        workers 2  f 45% w 32% s 34% g 33%
+   ate 288 food | stock food 412 wood 639 stone 327 gold 2123
+== day 27
+   people 12: construct 2, free 0 | workers: farm3, mill3, quarry3, farm1
+   rings: move 71% exercise 99% stand 85% steps 118%
+   earned: food +146.0 wood +43.5 stone +15.4 gold +118.0
+   scaffold hall -> level 4        workers 2  f 54% w 44% s 44% g 48%
+   ate 288 food | stock food 270 wood 683 stone 342 gold 2241
+== day 28
+   ! food rescue: farms first, no new builds except farms
+   people 12: construct 0, free 0 | workers: farm3, farm3, farm3, farm3
+   rings: move 66% exercise 91% stand 78% steps 82%
+   earned: food +290.3 wood +30.2 stone +10.7 gold +82.0
+   scaffold hall -> level 4        workers 0  f 54% w 44% s 44% g 48%
+   ate 288 food | stock food 272 wood 713 stone 353 gold 2323

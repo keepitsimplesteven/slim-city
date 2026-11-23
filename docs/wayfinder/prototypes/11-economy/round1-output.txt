@@ -1,0 +1,15 @@
+days: 28  cap: 1.5  overflow: False
+
+player   plan     hall 1stHse hall2  ppl   hungry capDay idleW steps   end wallet f/w/s/g | top block reasons
+light    builder  3    3      11     12    26     0      0     13/16   0/1014/1451/11800 | locked:21, short:wood:4, prereq:mill,quarry:1
+light    economy  2    4      13     8     13     0      1     11/16   0/885/1360/12500 | locked:20, short:wood:5, prereq:quarry:2
+light    hoarder  3    3      10     6     26     0      0     9/12    0/1146/1375/13700 | locked:21, prereq:mill,quarry:2, prereq:quarry:2
+normal   builder  4    3      8      13    16     0      0     16/16   0/2535/3250/24631 | locked:19, prereq:mill,quarry:2, short:wood:1
+normal   economy  3    4      9      9     0      0      0     13/16   2184/2546/2880/26500 | locked:23, short:wood:2, prereq:mill,quarry:1
+normal   hoarder  4    3      7      7     0      0      0     11/12   504/2573/2820/26200 | locked:22, prereq:house,farm:1, prereq:farm:1
+hard     builder  4    3      7      13    4      0      0     16/16   0/4432/5093/40782 | locked:15, template-done:5, prereq:mill,quarry:2
+hard     economy  4    4      8      10    0      0      0     16/16   5323/3956/4305/39450 | locked:19, template-done:2, short:wood:1
+hard     hoarder  4    3      6      7     0      0      0     12/12   2220/4511/4335/41100 | locked:15, template-done:6, prereq:house,farm:1
+extreme  builder  4    3      7      13    4      28     0     16/16   0/4432/5093/40782 | locked:15, template-done:5, prereq:mill,quarry:2
+extreme  economy  4    4      8      10    0      28     0     16/16   5323/3956/4305/39450 | locked:19, template-done:2, short:wood:1
+extreme  hoarder  4    3      6      7     0      28     0     12/12   2220/4511/4335/41100 | locked:15, template-done:6, prereq:house,farm:1
