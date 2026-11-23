@@ -40,12 +40,12 @@ A Kiro spec (`requirements.md`, `design.md`, `tasks.md`) for the MVP: the core l
 - [First run and permissions](tickets/16-first-run-and-permissions.md): one read-only intro screen, then the Health ask. No Health access means the game is blocked. Tracking starts at the Hall, but today pays retroactively. The whole first run is data, so it is easy to change. Notifications asked once after the first scaffold.
 - [Guidance and empty states](tickets/17-guidance-and-empty-states.md): five one-time hints in the dialog box, each ended by "Got it", plus "Don't show tips". A small Settings sheet holds the tips switch. Four one-line empty states. Characters, story and a help screen are cut. Prototype: prototypes/17-hints.html.
 - [Economy numbers](tickets/11-economy-numbers.md): throwaway Python sim with one JSON data file (`prototypes/11-economy/`). Starting numbers accepted as a first pass. Hall is the gate, food stops light players, gold piles up. Tuning continues in play tests.
+- [Art plan: build stages and Kenney pieces](tickets/18-art-plan.md): one model per building made of named parts, with a data list of parts per stage. A shared scaffold look is the default. Village Hall and House get real art first. Detail is a data number per building, starting at 2 pieces per tile side. Device frame rate is untested.
 
 ## Open tickets (index only; detail lives in each file)
 
 | Ticket | Type | Blocked by |
 |---|---|---|
-| [Art plan: build stages and Kenney pieces](tickets/18-art-plan.md) | grilling (HITL) | none |
 
 ## Not yet specified
 
