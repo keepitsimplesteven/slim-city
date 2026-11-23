@@ -2,7 +2,7 @@
 type: grilling
 status: open
 blocked-by: []
-claimed:
+claimed: steven
 ---
 
 # Art plan: build stages and Kenney pieces
