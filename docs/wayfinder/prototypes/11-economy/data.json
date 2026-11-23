@@ -1,53 +1,62 @@
 {
-  "_note": "Every number the sim uses. Edit and re-run: python3 sim.py. Resource units: 100 = one full ring (gold: 1000 = 10000 steps).",
+  "_note": "Every number the sim uses. Edit and re-run: python3 sim.py. Base = resources for one full ring (100%). Gold: 100 per 10,000 steps.",
   "days": 28,
+  "seeds": 30,
   "sources": {
     "food":  {"ring": "move",     "base": 100},
-    "wood":  {"ring": "exercise", "base": 100},
-    "stone": {"ring": "stand",    "base": 100},
-    "gold":  {"ring": "steps",    "base": 1000}
+    "wood":  {"ring": "exercise", "base": 30},
+    "stone": {"ring": "stand",    "base": 12},
+    "gold":  {"ring": "steps",    "base": 100}
   },
   "cap": 1.5,
   "overflow": {"enabled": false, "rate": 0.5, "max_raw": 2.0},
   "assemble": 2.0,
   "worker_curve": [0, 1.0, 1.5, 1.8],
   "max_workers_per_scaffold": 3,
+  "limit_scaffolds_to_workers": true,
   "food_per_person_day": 24,
-  "start": {"people": 1, "wallet": {"food": 0, "wood": 100, "stone": 0, "gold": 1000}},
+  "food_rescue": {"enabled": true, "trigger_days": 1.0, "max_auto_farms": 4},
+  "start": {"people": 1, "wallet": {"food": 0, "wood": 30, "stone": 0, "gold": 100}},
   "hall": {
     "max_level": 5,
     "people_per_level": 1,
     "construction_workers": 1,
     "requires": {"1": ["house", "farm"], "2": ["mill", "quarry"], "3": ["board"], "4": ["market", "bank"]},
     "effort": {
-      "2": {"food": 600,  "wood": 600,  "stone": 600,  "gold": 6000},
-      "3": {"food": 1200, "wood": 1200, "stone": 1200, "gold": 12000},
-      "4": {"food": 2400, "wood": 2400, "stone": 2400, "gold": 24000},
-      "5": {"food": 4000, "wood": 4000, "stone": 4000, "gold": 40000}
+      "2": {"food": 600,  "wood": 180, "stone": 72,  "gold": 600},
+      "3": {"food": 1200, "wood": 360, "stone": 144, "gold": 1200},
+      "4": {"food": 2400, "wood": 720, "stone": 288, "gold": 2400},
+      "5": {"food": 4000, "wood": 1200, "stone": 480, "gold": 4000}
     }
   },
   "buildings": {
-    "hall":      {"lv": 0, "cost": {"wood": 50,  "gold": 500}},
-    "house":     {"lv": 1, "cost": {"wood": 50,  "gold": 500}, "people": 2, "capacity": 0},
-    "farm":      {"lv": 1, "cost": {"wood": 80,  "gold": 300}, "produces": "food",  "add": 10,  "per_worker": 1.1, "capacity": 3},
-    "carpenter": {"lv": 2, "cost": {"wood": 120, "stone": 40, "gold": 400}, "construction_workers": 1, "capacity": 0},
-    "mill":      {"lv": 2, "cost": {"wood": 120, "stone": 40},  "produces": "wood",  "add": 10,  "per_worker": 1.1, "capacity": 3},
-    "quarry":    {"lv": 2, "cost": {"wood": 150, "stone": 60},  "produces": "stone", "add": 10,  "per_worker": 1.1, "capacity": 3},
-    "board":     {"lv": 3, "cost": {"wood": 100}, "capacity": 0},
-    "market":    {"lv": 4, "cost": {"wood": 200, "gold": 900}, "capacity": 0},
-    "bank":      {"lv": 4, "cost": {"wood": 200, "stone": 80, "gold": 600}, "produces": "gold", "add": 100, "per_worker": 1.1, "capacity": 3}
+    "hall":      {"lv": 0, "cost": {"wood": 15, "gold": 50}},
+    "house":     {"lv": 1, "cost": {"wood": 15, "gold": 50}, "people": 2, "capacity": 0},
+    "farm":      {"lv": 1, "cost": {"wood": 24, "gold": 30}, "produces": "food",  "add": 10,  "per_worker": 1.1, "capacity": 3},
+    "carpenter": {"lv": 2, "cost": {"wood": 36, "stone": 5, "gold": 40}, "construction_workers": 1, "capacity": 0},
+    "mill":      {"lv": 2, "cost": {"wood": 36, "stone": 5},  "produces": "wood",  "add": 3,   "per_worker": 1.1, "capacity": 3},
+    "quarry":    {"lv": 2, "cost": {"wood": 45, "stone": 7},  "produces": "stone", "add": 1.5, "per_worker": 1.1, "capacity": 3},
+    "board":     {"lv": 3, "cost": {"wood": 30}, "capacity": 0},
+    "market":    {"lv": 4, "cost": {"wood": 60, "gold": 90}, "capacity": 0},
+    "bank":      {"lv": 4, "cost": {"wood": 60, "stone": 10, "gold": 60}, "produces": "gold", "add": 10, "per_worker": 1.1, "capacity": 3}
   },
   "upgrades": {
-    "house": {"cost": {"wood": 80, "gold": 200}, "people": 1},
-    "farm":  {"cost": {"wood": 80, "gold": 200}, "per_worker_add": 0.1},
-    "mill":  {"cost": {"wood": 80, "stone": 40}, "per_worker_add": 0.1},
-    "quarry":{"cost": {"wood": 80, "stone": 40}, "per_worker_add": 0.1},
-    "bank":  {"cost": {"wood": 100, "gold": 400}, "per_worker_add": 0.1}
+    "house": {"cost": {"wood": 24, "gold": 20}, "people": 1},
+    "farm":  {"cost": {"wood": 24, "gold": 20}, "per_worker_add": 0.1},
+    "mill":  {"cost": {"wood": 24, "stone": 5}, "per_worker_add": 0.1},
+    "quarry":{"cost": {"wood": 24, "stone": 5}, "per_worker_add": 0.1},
+    "bank":  {"cost": {"wood": 30, "gold": 40}, "per_worker_add": 0.1}
   },
-  "players": {"light": 0.5, "normal": 1.0, "hard": 1.5, "extreme": 2.0},
+  "players": {
+    "perfect": {"mean": 1.0, "sd": 0.0},
+    "light":   {"mean": 0.5, "sd": 0.25},
+    "normal":  {"mean": 1.0, "sd": 0.25},
+    "hard":    {"mean": 1.5, "sd": 0.25}
+  },
+  "_templates_note": "Each plan is a priority list. Every day the sim tries each step in order and skips ones that are locked or waiting on a prerequisite. A step short on resources holds back the steps after it.",
   "templates": {
-    "builder": ["build:hall", "build:house", "build:farm", "build:house", "hall", "build:carpenter", "build:mill", "build:quarry", "build:house", "hall", "build:board", "build:house", "hall", "build:market", "build:bank", "hall"],
-    "economy": ["build:hall", "build:farm", "build:house", "build:farm", "upgrade:farm", "hall", "build:mill", "build:quarry", "upgrade:house", "build:house", "hall", "build:board", "hall", "build:bank", "build:market", "hall"],
-    "hoarder": ["build:hall", "build:house", "build:farm", "hall", "build:mill", "build:quarry", "hall", "build:board", "hall", "build:market", "build:bank", "hall"]
+    "builder": ["build:hall", "hall", "build:house", "build:farm", "build:house", "hall", "build:carpenter", "build:mill", "build:quarry", "build:house", "hall", "build:board", "build:house", "hall", "build:market", "build:bank", "hall"],
+    "economy": ["build:hall", "build:farm", "hall", "build:house", "build:farm", "upgrade:farm", "build:carpenter", "build:mill", "build:quarry", "upgrade:house", "build:house", "hall", "build:board", "hall", "build:bank", "build:market", "hall"],
+    "hoarder": ["build:hall", "hall", "build:house", "build:farm", "hall", "build:mill", "build:quarry", "hall", "build:board", "hall", "build:market", "build:bank", "hall"]
   }
 }
