@@ -8,11 +8,13 @@
 #   -clonedSourcePackagesDirPath/-derivedDataPath keep caches inside the workspace
 #
 # Usage: scripts/deploy-device.sh [DEVICE_UDID]
+# Without an argument, the UDID comes from SLIMCITY_DEVICE_ID, so the phone's
+# ID stays out of the repo. Set it in ~/.zshrc.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-DEVICE="${1:-00008140-000610C21093C01C}"
+DEVICE="${1:-${SLIMCITY_DEVICE_ID:?set SLIMCITY_DEVICE_ID or pass a UDID}}"
 BUNDLE_ID="com.stevenalberspersonalteam.SlimCity"
 DERIVED=".build-sim/device"
 
